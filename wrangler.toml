@@ -1,0 +1,12 @@
+name = "suno-architect"
+main = "functions/_worker.ts"
+compatibility_date = "2024-11-01"
+
+# This section tells Wrangler to upload your Vite build
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+# Observability (Useful for debugging proxy issues)
+[observability]
+enabled = true
