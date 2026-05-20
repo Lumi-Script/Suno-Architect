@@ -195,7 +195,9 @@ export const Header: React.FC<HeaderProps> = ({
                             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all flex items-center justify-between group hover:border-slate-600"
                         >
                             <span className="truncate font-medium text-slate-200">
-                                {geminiModel === 'gemini-3-pro-preview' ? 'Gemini 3.0 Pro (Preview)' : 
+                                {geminiModel === 'gemini-3.5-flash' ? 'Gemini 3.5 Flash' :
+                                 geminiModel === 'gemini-3.1-pro-preview' ? 'Gemini 3.1 Pro (Preview)' : 
+                                 geminiModel === 'gemini-3-pro-preview' ? 'Gemini 3.0 Pro (Preview)' :
                                  geminiModel === 'gemini-3-flash-preview' ? 'Gemini 3.0 Flash (Preview)' : 
                                  'Gemini 2.5 Flash'}
                             </span>
