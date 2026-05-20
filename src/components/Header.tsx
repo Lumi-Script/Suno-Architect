@@ -217,6 +217,34 @@ export const Header: React.FC<HeaderProps> = ({
                             <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-lg shadow-xl overflow-hidden z-20 animate-in fade-in zoom-in-95 duration-100 ring-1 ring-black/20">
                                 <div className="py-1">
                                     <button
+                                        onClick={() => { onGeminiModelChange('gemini-3.5-flash'); setIsModelDropdownOpen(false); }}
+                                        className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center justify-between
+                                        ${geminiModel === 'gemini-3.5-flash' 
+                                            ? 'bg-purple-600/20 text-purple-300' 
+                                            : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'}`}
+                                    >
+                                        <span>Gemini 3.5 Flash</span>
+                                        {geminiModel === 'gemini-3.5-flash' && (
+                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-purple-400">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={() => { onGeminiModelChange('gemini-3.1-pro-preview'); setIsModelDropdownOpen(false); }}
+                                        className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center justify-between
+                                        ${geminiModel === 'gemini-3.1-pro-preview' 
+                                            ? 'bg-purple-600/20 text-purple-300' 
+                                            : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'}`}
+                                    >
+                                        <span>Gemini 3.1 Pro Preview</span>
+                                        {geminiModel === 'gemini-3.1-pro-preview' && (
+                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-purple-400">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                    <button
                                         onClick={() => { onGeminiModelChange('gemini-3-pro-preview'); setIsModelDropdownOpen(false); }}
                                         className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center justify-between
                                         ${geminiModel === 'gemini-3-pro-preview' 
