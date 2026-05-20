@@ -237,7 +237,7 @@ export const Header: React.FC<HeaderProps> = ({
                                             ? 'bg-purple-600/20 text-purple-300' 
                                             : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'}`}
                                     >
-                                        <span>Gemini 3.1 Pro Preview</span>
+                                        <span>Gemini 3.1 Pro (Preview)</span>
                                         {geminiModel === 'gemini-3.1-pro-preview' && (
                                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 text-purple-400">
                                                 <polyline points="20 6 9 17 4 12" />
