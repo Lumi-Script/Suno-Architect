@@ -2,6 +2,7 @@
 import React from 'react';
 import { ParsedSunoOutput } from '../../types';
 import CopyButton from '../CopyButton';
+import CleanLyricsToggle from '../CleanLyricsToggle';
 
 interface TrackCardProps {
   data: ParsedSunoOutput;
@@ -11,9 +12,21 @@ interface TrackCardProps {
   sunoCookie?: string;
   onSync: () => void;
   onEdit: () => void;
+  cleanLyrics: boolean;
+  onCleanLyricsChange: (checked: boolean) => void;
 }
 
-const TrackCard: React.FC<TrackCardProps> = ({ data, index, totalTracks, status, sunoCookie, onSync, onEdit }) => {
+const TrackCard: React.FC<TrackCardProps> = ({ 
+    data, 
+    index, 
+    totalTracks, 
+    status, 
+    sunoCookie, 
+    onSync, 
+    onEdit,
+    cleanLyrics,
+    onCleanLyricsChange
+}) => {
   const metaItemsCount = [data.title, data.style, data.excludeStyles, data.advancedParams].filter(Boolean).length;
   const gridClass = metaItemsCount >= 4 
     ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4" 
@@ -95,37 +108,46 @@ const TrackCard: React.FC<TrackCardProps> = ({ data, index, totalTracks, status,
             <div className="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden shadow-lg">
                 <div className="bg-slate-900/50 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
                     <h3 className="text-sm font-semibold text-pink-300 uppercase tracking-wider">Lyrics</h3>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
                         {sunoCookie && (
-                            <button
-                                onClick={onSync}
-                                disabled={status.loading}
-                                title={status.success ? "Sync again (creates new generation)" : "Sync to Suno"}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border flex items-center space-x-2
-                                ${status.loading 
-                                    ? 'bg-pink-600/50 border-pink-500/50 text-white cursor-wait' 
-                                    : status.success
-                                        ? 'bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30 hover:border-green-500/50 hover:text-green-300'
-                                        : 'bg-pink-700/80 border-pink-600 text-pink-100 hover:bg-pink-600'}`}
-                            >
-                                {status.loading ? (
-                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                ) : status.success ? (
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                                        <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                                    </svg>
-                                ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                        <polyline points="17 8 12 3 7 8" />
-                                        <line x1="12" y1="3" x2="12" y2="15" />
-                                    </svg>
-                                )}
-                                <span>{status.loading ? 'Syncing...' : status.success ? 'Synced' : 'Sync to Suno'}</span>
-                            </button>
+                            <div className="flex items-center gap-4">
+                                <CleanLyricsToggle 
+                                    checked={cleanLyrics}
+                                    onChange={onCleanLyricsChange}
+                                    tooltip={cleanLyrics ? "Enabled: Remove style prompts from Suno lyrics metadata." : "Disabled: Include style prompts in Suno lyrics metadata"}
+                                    id={`clean-lyrics-${index}`}
+                                />
+
+                                <button
+                                    onClick={onSync}
+                                    disabled={status.loading}
+                                    title={status.success ? "Sync again (creates new generation)" : "Sync to Suno"}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border flex items-center space-x-2
+                                    ${status.loading 
+                                        ? 'bg-pink-600/50 border-pink-500/50 text-white cursor-wait' 
+                                        : status.success
+                                            ? 'bg-green-600/20 border-green-500/30 text-green-400 hover:bg-green-600/30 hover:border-green-500/50 hover:text-green-300'
+                                            : 'bg-pink-700/80 border-pink-600 text-pink-100 hover:bg-pink-600'}`}
+                                >
+                                    {status.loading ? (
+                                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    ) : status.success ? (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                                            <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
+                                        </svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="17 8 12 3 7 8" />
+                                            <line x1="12" y1="3" x2="12" y2="15" />
+                                        </svg>
+                                    )}
+                                    <span>{status.loading ? 'Syncing...' : status.success ? 'Synced' : 'Sync to Suno'}</span>
+                                </button>
+                            </div>
                         )}
                         <CopyButton text={data.lyricsWithTags} label="Copy" />
                     </div>

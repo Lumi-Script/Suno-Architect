@@ -257,16 +257,20 @@ const App: React.FC = () => {
       localStorage.setItem('suno_model', model);
   };
 
-  const handleSyncSuccess = async (response: any, originalData: ParsedSunoOutput) => {
+  const handleSyncSuccess = async (response: any, originalData: ParsedSunoOutput, cleanLyrics: boolean = true) => {
     if (sunoCookie) {
         getSunoCredits(sunoCookie).then(setSunoCredits).catch(console.error);
     }
 
     if (response && response.clips && Array.isArray(response.clips)) {
         response.clips.forEach((clip: any) => {
-             updateSunoMetadata(clip.id, originalData, sunoCookie)
-                .then(() => console.log(`Metadata updated for ${clip.id}`))
-                .catch(err => console.error(`Metadata update failed for ${clip.id}`, err));
+             if (cleanLyrics) {
+                 updateSunoMetadata(clip.id, originalData, sunoCookie)
+                    .then(() => console.log(`Metadata updated for ${clip.id}`))
+                    .catch(err => console.error(`Metadata update failed for ${clip.id}`, err));
+             } else {
+                 console.log(`Skipping metadata update for ${clip.id} as per user preference`);
+             }
         });
 
         const newClips: SunoClip[] = response.clips.map((clip: any) => ({
