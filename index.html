@@ -24,6 +24,143 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@400;700&family=Montserrat:wght@400;700&family=Lora:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 </head>
   <body>
+    <noscript>
+      <style>
+        body {
+          background-color: #0f172a;
+          color: #e2e8f0;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          line-height: 1.6;
+        }
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 2rem;
+        }
+        nav {
+          background-color: #1e293b;
+          padding: 1rem;
+          text-align: center;
+          position: sticky;
+          top: 0;
+          border-bottom: 1px solid #334155;
+          z-index: 100;
+        }
+        nav a {
+          color: #a855f7;
+          margin: 0 1rem;
+          text-decoration: none;
+          font-weight: 600;
+        }
+        nav a:hover {
+          text-decoration: underline;
+        }
+        h1, h2, h3 {
+          color: #ffffff;
+          margin-top: 1.5rem;
+        }
+        section {
+          margin-bottom: 4rem;
+          scroll-margin-top: 5rem;
+          padding-top: 1rem;
+        }
+        .card {
+          background-color: #1e293b;
+          border: 1px solid #334155;
+          padding: 1.5rem;
+          border-radius: 0.75rem;
+          margin-top: 1rem;
+        }
+        .logo {
+          font-size: 2rem;
+          font-weight: bold;
+          color: #ffffff;
+          margin-bottom: 0.5rem;
+          text-align: center;
+        }
+        .subtitle {
+          text-align: center;
+          color: #94a3b8;
+          margin-bottom: 2rem;
+        }
+        footer {
+          margin-top: 5rem;
+          padding: 2rem;
+          text-align: center;
+          border-top: 1px solid #1e293b;
+          font-size: 0.875rem;
+          color: #94a3b8;
+        }
+        ul {
+          padding-left: 1.5rem;
+        }
+        li {
+          margin-bottom: 0.75rem;
+        }
+      </style>
+      <nav>
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#privacy">Privacy Policy</a>
+        <a href="#ToS">Terms of Service</a>
+      </nav>
+      <div class="container">
+        <section id="home">
+          <div class="logo">Suno Architect</div>
+          <p class="subtitle">Auto generate Suno prompts using Gemini AI.</p>
+          <h1>Architect Your Album</h1>
+          <p>Suno Architect helps you transform raw ideas into structured albums (up to 7 tracks). It generates cohesive prompts with production directives for AI music engines like Suno & Udio.</p>
+          <div class="card">
+            <h3>JavaScript Required</h3>
+            <p>To use the interactive features of Suno Architect, such as generating prompts and syncing with Suno, please enable JavaScript in your browser settings and refresh the page.</p>
+          </div>
+        </section>
+
+        <section id="about">
+          <h2>About Suno Architect</h2>
+          <p><strong>Suno Architect</strong> is an advanced creative tool designed to help construct highly detailed structural templates, lyrics, and metadata for AI music generation platforms like Suno and Udio.</p>
+          <div class="card">
+            <h3>Data Usage Transparency</h3>
+            <ul>
+              <li><strong>Google OAuth & Data Request:</strong> We offer a "Sign in with Google" feature that requests access for the Gemini API scopes. We specifically request this to communicate with Google's Gemini LLMs to write and expand lyrical prompts on your behalf completely free of charge. We do not use this access for any other reasons, and do not access files, emails, or personal information.</li>
+              <li><strong>Local Processing First:</strong> When you provide a Google Auth token or an API key, we utilize it only to relay prompts transiently to the generative API.</li>
+              <li><strong>Visibility:</strong> No sign in is strictly required to view the application and its features. However, to generate the intricate LLM prompt layouts, an API token or a Google Sign In allows the app to communicate effectively.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="privacy">
+          <h2>Privacy Policy</h2>
+          <p>We are committed to protecting your privacy. This application is designed with a strict minimal-data philosophy.</p>
+          <div class="card">
+            <ul>
+              <li><strong>No Sensitive Data Lasts:</strong> Gemini / Google auth data directly interfaces with the Gemini API. Suno tokens reach our Cloudflare deployment, though are not logged and are extremely time limited.</li>
+              <li><strong>No Identifying Info:</strong> No private identifying information ever reaches our servers, including your personal identifying Google and Suno information.</li>
+              <li><strong>Usage of Data:</strong> No telemetry data is recorded by us beyond URL request logs. Please consult Gemini's privacy policy for how they handle data.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="ToS">
+          <h2>Terms of Service</h2>
+          <p>By using Suno Architect, you agree to these Terms of Service.</p>
+          <div class="card">
+            <ul>
+              <li><strong>Acceptable Use:</strong> You may not use this application for any illegal or unauthorized purpose.</li>
+              <li><strong>Copyright Infringement:</strong> You agree not to use the application to infringe on any third party's copyright, trademark, or other intellectual property rights. Do not generate music that uses copyrighted lyrics or elements without permission.</li>
+              <li><strong>Third-Party Services:</strong> This application interacts with third-party APIs (Google, Suno). You must also comply with their respective Terms of Service while using this application.</li>
+              <li><strong>No Liability:</strong> We are not responsible for any content generated through this tool or any consequences arising from its use.</li>
+            </ul>
+          </div>
+        </section>
+        
+        <footer>
+          <p>&copy; 2024 Suno Architect. Open Source Project.</p>
+        </footer>
+      </div>
+    </noscript>
     <div id="root"></div>
   <script type="module" src="src/index.tsx"></script>
 </body>
