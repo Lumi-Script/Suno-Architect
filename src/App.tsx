@@ -202,37 +202,73 @@ const App: React.FC = () => {
          return;
     }
     
-    const fetchLimit = typeof limit === 'number' ? limit : 50;
-
     setIsSyncingHistory(true);
     setSyncProgress('Fetching...');
+
+    const fetchPage = async (limitVal: number, cursorVal: string | null): Promise<any> => {
+        let attempts = 0;
+        const maxAttempts = 10;
+        while (true) {
+            try {
+                return await getSunoFeed(sunoCookie, limitVal, cursorVal);
+            } catch (err: any) {
+                if (err.message === "429") {
+                    attempts++;
+                    if (attempts >= maxAttempts) {
+                        throw err;
+                    }
+                    setSyncProgress(`Rate limited. Retrying page in 1s...`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+                throw err;
+            }
+        }
+    };
     
     try {
-        const feedData = await getSunoFeed(sunoCookie, fetchLimit);
-        
-        if (feedData && Array.isArray(feedData.clips)) {
-             const newClips = feedData.clips.map(mapSunoClip);
-             mergeClips(newClips);
-             setSyncProgress(`Updated ${newClips.length} items`);
-        }
-    } catch(e: any) {
-         if (e.message === "429") {
-             setSyncProgress(`Rate limited. Retrying...`);
-             await new Promise(r => setTimeout(r, 5000));
-             try {
-                const feedData = await getSunoFeed(sunoCookie, fetchLimit);
+        if (limit === 'all') {
+            let cursor: string | null = null;
+            let hasMore = true;
+            let totalUpdated = 0;
+            const pageSize = 100;
+
+            while (hasMore) {
+                setSyncProgress(`Fetched ${totalUpdated} items...`);
+                const feedData = await fetchPage(pageSize, cursor);
+                
                 if (feedData && Array.isArray(feedData.clips)) {
                     const newClips = feedData.clips.map(mapSunoClip);
                     mergeClips(newClips);
-                    setSyncProgress(`Updated ${newClips.length} items`);
+                    totalUpdated += newClips.length;
+
+                    hasMore = feedData.has_more === true;
+                    cursor = feedData.next_cursor || feedData.cursor || null;
+                    if (!cursor) {
+                        hasMore = false;
+                    }
+                    
+                    // Polite delay between successful page loads
+                    await new Promise(r => setTimeout(r, 100));
+                } else {
+                    hasMore = false;
                 }
-             } catch (retryErr) {
-                 console.error("Retry failed", retryErr);
-                 alert("Failed to sync history due to rate limits.");
-             }
+            }
+            setSyncProgress(`Updated ${totalUpdated} items`);
+        } else {
+            const feedData = await fetchPage(limit, null);
+            if (feedData && Array.isArray(feedData.clips)) {
+                 const newClips = feedData.clips.map(mapSunoClip);
+                 mergeClips(newClips);
+                 setSyncProgress(`Updated ${newClips.length} items`);
+            }
+        }
+    } catch(e: any) {
+         console.error("Sync flow failed", e);
+         if (e.message === "429") {
+             alert("Failed to sync history due to rate limits after multiple attempts.");
          } else {
-            console.error("Sync flow failed", e);
-            alert("Failed to sync history.");
+             alert("Failed to sync history.");
          }
     } finally {
         setIsSyncingHistory(false);

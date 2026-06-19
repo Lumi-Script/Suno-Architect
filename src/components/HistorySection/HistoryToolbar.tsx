@@ -9,8 +9,8 @@ interface HistoryToolbarProps {
   onFetchHistory: (limit: number | 'all') => void;
   isSyncing: boolean;
   syncProgress?: string;
-  limit: number;
-  setLimit: (limit: number) => void;
+  limit: number | 'all';
+  setLimit: (limit: number | 'all') => void;
   onClearSearch: () => void;
   isShowingSearchResults: boolean;
 }
@@ -83,13 +83,17 @@ const HistoryToolbar: React.FC<HistoryToolbarProps> = ({
             <div className="flex items-center gap-2 w-full sm:w-auto bg-slate-900/50 p-1 rounded-lg border border-slate-700">
                 <select
                     value={limit}
-                    onChange={(e) => setLimit(Number(e.target.value))}
+                    onChange={(e) => {
+                        const val = e.target.value;
+                        setLimit(val === 'all' ? 'all' : Number(val));
+                    }}
                     disabled={isSyncing}
                     className="bg-slate-800 border-none text-white text-xs rounded-md py-1.5 px-2 focus:ring-1 focus:ring-purple-500 outline-none cursor-pointer"
                 >
                     <option value={50}>50 items</option>
                     <option value={100}>100 items</option>
                     <option value={200}>200 items</option>
+                    <option value="all">All items</option>
                 </select>
 
                 <button

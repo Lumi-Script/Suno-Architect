@@ -65,7 +65,7 @@ const HistorySection: React.FC<HistorySectionProps> = ({ history, onUpdateClip, 
   const [searchText, setSearchText] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<SunoClip[] | null>(null);
-  const [limit, setLimit] = useState<number>(50);
+  const [limit, setLimit] = useState<number | 'all'>(50);
 
   // Derive the active clip from history to ensure we always have the latest data
   const selectedClip = useMemo(() => {
@@ -104,15 +104,59 @@ const HistorySection: React.FC<HistorySectionProps> = ({ history, onUpdateClip, 
               }
           } else {
               // Feed Search
-              const data = await getSunoFeed(sunoCookie, limit, null, input);
-              if (data && Array.isArray(data.clips)) {
-                  const results = data.clips.map(mapSunoClip);
-                  setSearchResults(results);
-                  // Automatically merge search results into history persistence
-                  onAddClip(results); 
+              let allClips: SunoClip[] = [];
+              let hasMore = true;
+              let cursor: string | null = null;
+              
+              const fetchSearchPage = async (limitVal: number, cursorVal: string | null): Promise<any> => {
+                  let attempts = 0;
+                  const maxAttempts = 10;
+                  while (true) {
+                      try {
+                          return await getSunoFeed(sunoCookie, limitVal, cursorVal, input);
+                      } catch (err: any) {
+                          if (err.message === "429") {
+                              attempts++;
+                              if (attempts >= maxAttempts) {
+                                  throw err;
+                              }
+                              await new Promise(resolve => setTimeout(resolve, 1000));
+                              continue;
+                          }
+                          throw err;
+                      }
+                  }
+              };
+
+              if (limit === 'all') {
+                  const pageSize = 100;
+                  while (hasMore) {
+                      const data = await fetchSearchPage(pageSize, cursor);
+                      if (data && Array.isArray(data.clips)) {
+                          const results = data.clips.map(mapSunoClip);
+                          allClips = [...allClips, ...results];
+                          
+                          hasMore = data.has_more === true;
+                          cursor = data.next_cursor || data.cursor || null;
+                          if (!cursor) {
+                              hasMore = false;
+                          }
+                          
+                          await new Promise(r => setTimeout(r, 100));
+                      } else {
+                          hasMore = false;
+                      }
+                  }
               } else {
-                  setSearchResults([]);
+                  const data = await fetchSearchPage(limit, null);
+                  if (data && Array.isArray(data.clips)) {
+                      allClips = data.clips.map(mapSunoClip);
+                  }
               }
+
+              setSearchResults(allClips);
+              // Automatically merge search results into history persistence
+              onAddClip(allClips);
           }
       } catch (e: any) {
           console.error("Search/Import failed", e);
