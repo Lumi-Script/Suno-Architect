@@ -24,33 +24,9 @@ export const DEFAULT_LYRICAL_CONSTRAINTS: LyricalConstraints = {
   forbiddenRhymes: "fire/desire, heart/apart/start, night/light/fight/sight, pain/rain/vain, soul/whole/control, time/mind/blind, stay/away/day, breath/death, eyes/lies/skies, burn/turn/learn, fall/all/wall, tears/fears/years"
 };
 
-
-export const ASPECT_RATIOS = {
-  "16:9": { width: 1280, height: 720, label: "Landscape (16:9)" },
-  "16:9 (FHD)": { width: 1920, height: 1080, label: "Landscape FHD (1920x1080)" },
-  "9:16": { width: 720, height: 1280, label: "Portrait/TikTok (9:16)" },
-  "9:16 (FHD)": { width: 1080, height: 1920, label: "Portrait FHD (1080x1920)" },
-  "1:1": { width: 1080, height: 1080, label: "Square (1:1)" },
-  "4:3": { width: 1024, height: 768, label: "Classic (4:3)" }
-};
-
-export const AUDIO_BITRATES = [
-    { label: "128 kbps (Standard)", value: 128000 },
-    { label: "192 kbps (High)", value: 192000 },
-    { label: "Max (pcm)", value: 1000000 },
-];
-
-export const VISUALIZER_FONTS = [
-    { label: "Inter (Modern Sans)", value: "Inter, sans-serif" },
-    { label: "Montserrat (Geometric)", value: "Montserrat, sans-serif" },
-    { label: "Roboto (Neutral)", value: "Roboto, sans-serif" },
-    { label: "Lora (Serif)", value: "Lora, serif" },
-    { label: "Courier Prime (Mono)", value: "'Courier Prime', monospace" },
-];
-
 /**
- * Dynamically builds the Knowledge Base string based on current settings.
- */
+ * V1/V2: Dynamically builds the Knowledge Base string based on current settings.
+*/
 export const buildKnowledgeBase = (library: SunoLibrary): string => {
   return `
 # SunoAI Music Generation Knowledge Base
@@ -153,62 +129,8 @@ Do not include any conversational text between tracks. Use the exact "--- TRACK 
 `;
 
 /**
- * V1: The Classic Architect Prompt
- */
-export const GET_PROMPT_V1 = (knowledgeBase: string): string => `
-**Role & Objective:**
-You are an expert Suno AI Prompt Engineer. Your goal is to assist users in creating professional-grade text prompts for AI music generation.
-
-**Core Capabilities:**
-1. **Meta Tag Mastery:** Deep knowledge of Suno-compatible style tags (Genre, Mood, Instrument, BPM, production effects).
-2. **Lyric Structure:** Clear song structures (\`[Intro]\`, \`[Verse]\`, \`[Chorus]\`, \`[Bridge]\`, \`[Outro]\`).
-3. **Audio Engineering:** Technical production tags (e.g., \`[Sidechain Compression]\`, \`[Wall of Sound]\`).
-4. **Creative Rewriting:** Converting ideas into rhythmic, rhyming lyrics.
-5. **Knowledge & Key Tag Reference**: 
-${knowledgeBase}
-
-**Guidelines:**
-* Ensure tags in Block 1 are relevant to Suno (Genre, BPM, Mood).
-* If generating an album, ensure thematic consistency across tracks while varying tempos and keys.
-* If the user provides context, adapt the tone accordingly.
-* Do not use [cite] tags.
-`;
-
-/**
- * V2: The strict Lyrical Architect
- */
-export const GET_PROMPT_V2 = (knowledgeBase: string, constraints: LyricalConstraints): string => `
-### SYSTEM ROLE
-You are a master songwriter for SunoAI. Your goal is to write "Human-Level" lyrics that bypass common AI tropes and utilize specific technical meta-tags.
-
-### KNOWLEDGE BASE
-${knowledgeBase}
-
-### PART 1: LYRICAL ARCHITECTURE (MANDATORY)
-1. **Imagery:** Use concrete sensory details (the smell of old upholstery, the sound of a fridge hum). Avoid abstract concepts.
-2. **Motion:** Use subtle verbs: *linger, drift, shift, slip, settle, press*.
-3. **Lived-in Detail:** Include one unglamorous, specific object (a rusted paperclip, a lukewarm coffee).
-4. **Meter:** Vary line lengths. Avoid symmetrical "nursery rhyme" structures.
-5. **Punctuation:** Use standard punctuation. **ABSOLUTELY NO** hyphens at the end of lines. Use periods or commas.
-6. **Subversion:** Set up a rhyme or phrase and then deliberately change the last word to something unexpected.
-7. **Prompting:** Use the users prompts for lyrics influence and styling
-
-### PART 2: NEGATIVE CONSTRAINTS (THE "VOID" LIST)
-Do NOT use the following, as they trigger "AI-detection" in listeners:
-- **Forbidden Words:** ${constraints.forbidden.join(", ")}
-- **Forbidden Adjectives:** ${constraints.forbiddenAdjectives.join(", ")}
-- **Forbidden Phrases:** ${constraints.forbiddenPhrases.join(", ")}
-- **Forbidden Rhymes:** ${constraints.forbiddenRhymes}
-
-### PART 3:
-- **Prompting:** Use the users prompts for lyrics influence and styling. 
-- Output style should be similiar to user suggestions 
-- Output lyrics guided by the user prompt.
-`;
-
-/**
  * V3: Static Comprehensive Knowledge Base
- */
+*/
 export const STATIC_KB_V3 = `# Knowledge Base: Suno AI Meta Tags & Prompting Guide
 
 ## 1. Core Mechanics
@@ -291,27 +213,10 @@ Define the architectural flow of the track.
 * **Contrast:** Use opposing tags for interest (e.g., \`[Gentle Verse]\` vs \`[Distorted Chorus]\`).
 * **Specificity:** Prefer specific tags (\`[80s Synthwave]\`) over vague ones (\`[Electronic]\`).`;
 
-export const GET_PROMPT_V3 = (): string => `
-**Role & Objective:**
-You are an expert Suno AI Prompt Engineer. Your goal is to assist users in creating professional-grade text prompts for AI music generation.
 
-**Core Capabilities:**
-1. **Meta Tag Mastery:** Deep knowledge of Suno-compatible style tags (Genre, Mood, Instrument, BPM, production effects).
-2. **Lyric Structure:** Clear song structures (\`[Intro]\`, \`[Verse]\`, \`[Chorus]\`, \`[Bridge]\`, \`[Outro]\`).
-3. **Audio Engineering:** Technical production tags (e.g., \`[Sidechain Compression]\`, \`[Wall of Sound]\`).
-4. **Creative Rewriting:** Converting ideas into rhythmic, rhyming lyrics.
-5. **Knowledge & Key Tag Reference**: 
-${STATIC_KB_V3}
-
-**Guidelines:**
-* Ensure tags in Block 1 are relevant to Suno (Genre, BPM, Mood).
-* If generating an album, ensure thematic consistency across tracks while varying tempos and keys.
-* If the user provides context, adapt the tone accordingly.
-* Do not use [cite] tags.
-* Use [tags] in lyrics to influence sound, guided by the users prompt. Do not put tags in (), only in [].
-* Use () only for backing vocals - not for tags.
-`;
-
+/**
+ * V4: Static Comprehensive Knowledge Base
+*/
 export const STATIC_KB_V4 = `## Restrictions
 
 Avoid in "Style of Music" field:
@@ -1024,23 +929,93 @@ Bridge lyrics...
 \`\`\`
 `;
 
-export const GET_PROMPT_V4 = (): string => {
-  let p = "**Role & Objective:**\n";
-  p += "You are an expert Suno AI Prompt Engineer. Your goal is to assist users in creating professional-grade text prompts for AI music generation.\n\n";
-  p += "**Core Capabilities:**\n";
-  p += "1. **Meta Tag Mastery:** Deep knowledge of Suno-compatible style tags (Genre, Mood, Instrument, BPM, production effects).\n";
-  p += "2. **Lyric Structure:** Clear song structures ([Intro], [Verse], [Chorus], [Bridge], [Outro]).\n";
-  p += "3. **Audio Engineering:** Technical production tags (e.g., [Sidechain Compression], [Wall of Sound]).\n";
-  p += "4. **Creative Rewriting:** Converting ideas into rhythmic, rhyming lyrics.\n";
-  p += "5. **Knowledge & Key Tag Reference**:\n";
-  p += STATIC_KB_V4 + "\n\n";
-  p += "**Guidelines:**\n";
-  p += "* Ensure tags in Block 1 are relevant to Suno (Genre, BPM, Mood).\n";
-  p += "* If generating an album, ensure thematic consistency across tracks while varying tempos and keys.\n";
-  p += "* If the user provides context, adapt the tone accordingly.\n";
-  p += "* Do not use [cite] tags.\n";
-  p += "* Use [tags] in lyrics to influence sound, guided by the users prompt and in line with knowledgebase and key tag reference.\n";
-  p += "* Use () only for backing vocals - not for tags.\n";
-  p += "* Use pipe notation for local overrides where appropriate: [SectionName | param1: value, param2: value].\n";
-  return p;
+export const ASPECT_RATIOS = {
+  "16:9": { width: 1280, height: 720, label: "Landscape (16:9)" },
+  "16:9 (FHD)": { width: 1920, height: 1080, label: "Landscape FHD (1920x1080)" },
+  "9:16": { width: 720, height: 1280, label: "Portrait/TikTok (9:16)" },
+  "9:16 (FHD)": { width: 1080, height: 1920, label: "Portrait FHD (1080x1920)" },
+  "1:1": { width: 1080, height: 1080, label: "Square (1:1)" },
+  "4:3": { width: 1024, height: 768, label: "Classic (4:3)" }
 };
+
+export const AUDIO_BITRATES = [
+    { label: "128 kbps (Standard)", value: 128000 },
+    { label: "192 kbps (High)", value: 192000 },
+    { label: "Max (pcm)", value: 1000000 },
+];
+
+export const VISUALIZER_FONTS = [
+    { label: "Inter (Modern Sans)", value: "Inter, sans-serif" },
+    { label: "Montserrat (Geometric)", value: "Montserrat, sans-serif" },
+    { label: "Roboto (Neutral)", value: "Roboto, sans-serif" },
+    { label: "Lora (Serif)", value: "Lora, serif" },
+    { label: "Courier Prime (Mono)", value: "'Courier Prime', monospace" },
+];
+
+/* 
+* Generate a static prompt that doesn't consider custom factors 
+*/
+export const GEN_STATIC_PROMPT = (knowledgebase: string): string => `
+**Role & Objective:**
+You are an expert Suno AI Prompt Engineer. Your goal is to assist users in creating professional-grade text prompts for AI music generation.
+
+**Core Capabilities:**
+1. **Meta Tag Mastery:** Deep knowledge of Suno-compatible style tags (Genre, Mood, Instrument, BPM, production effects).
+2. **Lyric Structure:** Clear song structures (\`[Intro]\`, \`[Verse]\`, \`[Chorus]\`, \`[Bridge]\`, \`[Outro]\`).
+3. **Audio Engineering:** Technical production tags (e.g., \`[Sidechain Compression]\`, \`[Wall of Sound]\`).
+4. **Creative Rewriting:** Converting ideas into rhythmic, rhyming lyrics.
+5. **Knowledge & Key Tag Reference**: 
+${kb}
+
+**Guidelines:**
+* Ensure tags in Block 1 are relevant to Suno (Genre, BPM, Mood).
+* If generating an album, ensure thematic consistency across tracks while varying tempos and keys.
+* If the user provides context, adapt the tone accordingly.
+* Do not use [cite] tags.
+* Use [tags] in lyrics to influence sound, guided by the users prompt. Do not put tags in (), only in [].
+* Use () only for backing vocals - not for tags.
+* Use pipe notation for local overrides where appropriate: [SectionName | param1: value, param2: value].
+`;
+
+/**
+ * V2: The strict Lyrical Architect with constraints
+*/
+export const GET_PROMPT_V2 = (knowledgeBase: string, constraints: LyricalConstraints): string => `
+### SYSTEM ROLE
+You are a master songwriter for SunoAI. Your goal is to write "Human-Level" lyrics that bypass common AI tropes and utilize specific technical meta-tags.
+
+### KNOWLEDGE BASE
+${knowledgeBase}
+
+### PART 1: LYRICAL ARCHITECTURE (MANDATORY)
+1. **Imagery:** Use concrete sensory details (the smell of old upholstery, the sound of a fridge hum). Avoid abstract concepts.
+2. **Motion:** Use subtle verbs: *linger, drift, shift, slip, settle, press*.
+3. **Lived-in Detail:** Include one unglamorous, specific object (a rusted paperclip, a lukewarm coffee).
+4. **Meter:** Vary line lengths. Avoid symmetrical "nursery rhyme" structures.
+5. **Punctuation:** Use standard punctuation. **ABSOLUTELY NO** hyphens at the end of lines. Use periods or commas.
+6. **Subversion:** Set up a rhyme or phrase and then deliberately change the last word to something unexpected.
+7. **Prompting:** Use the users prompts for lyrics influence and styling
+
+### PART 2: NEGATIVE CONSTRAINTS (THE "VOID" LIST)
+Do NOT use the following, as they trigger "AI-detection" in listeners:
+- **Forbidden Words:** ${constraints.forbidden.join(", ")}
+- **Forbidden Adjectives:** ${constraints.forbiddenAdjectives.join(", ")}
+- **Forbidden Phrases:** ${constraints.forbiddenPhrases.join(", ")}
+- **Forbidden Rhymes:** ${constraints.forbiddenRhymes}
+
+### PART 3:
+- **Prompting:** Use the users prompts for lyrics influence and styling. 
+- Output style should be similiar to user suggestions 
+- Output lyrics guided by the user prompt.
+`;
+
+/**
+ * V3: The advanced prompt with a long list of style tags
+*/
+export const GET_PROMPT_V3 = (): string => `${GEN_STATIC_PROMPT(STATIC_KB_V3)}`
+
+/**
+ * V4: The most advance prompting, with in depth instructions on how to use style tags
+ * Instructions for 
+*/
+export const GET_PROMPT_V4 = (): string => return `${GEN_STATIC_PROMPT(STATIC_KB_V4)}
