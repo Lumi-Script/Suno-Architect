@@ -28,8 +28,7 @@ export const DEFAULT_LYRICAL_CONSTRAINTS: LyricalConstraints = {
  * V1/V2: Dynamically builds the Knowledge Base string based on current settings.
 */
 export const buildKnowledgeBase = (library: SunoLibrary): string => {
-  return `
-# SunoAI Music Generation Knowledge Base
+  return `# SunoAI Music Generation Knowledge Base
 
 ## 1. Core Syntax & Functionality
 **Meta Tags** act as creative instructions defining genre, mood, instruments, effects, and structure.
@@ -125,8 +124,7 @@ Style Influence: [0-100]%
 Lyrics text...
 \`\`\`
 
-Do not include any conversational text between tracks. Use the exact "--- TRACK [N] ---" header before each track set.
-`;
+Do not include any conversational text between tracks. Use the exact "--- TRACK [N] ---" header before each track set.`;
 
 /**
  * V3: Static Comprehensive Knowledge Base
@@ -955,8 +953,7 @@ export const VISUALIZER_FONTS = [
 /* 
 * Generate a static prompt that doesn't consider custom factors 
 */
-export const GEN_STATIC_PROMPT = (knowledgebase: string): string => `
-**Role & Objective:**
+export const GEN_STATIC_PROMPT = (knowledgebase: string): string => `**Role & Objective:**
 You are an expert Suno AI Prompt Engineer. Your goal is to assist users in creating professional-grade text prompts for AI music generation.
 
 **Core Capabilities:**
@@ -974,8 +971,7 @@ ${knowledgebase}
 * Do not use [cite] tags.
 * Use [tags] in lyrics to influence sound, guided by the users prompt. Do not put tags in (), only in [].
 * Use () only for backing vocals - not for tags.
-* Use pipe notation for local overrides where appropriate: [SectionName | param1: value, param2: value].
-`;
+* Use pipe notation for local overrides where appropriate: [SectionName | param1: value, param2: value].`;
 
 /**
  * V2: The strict Lyrical Architect with constraints
