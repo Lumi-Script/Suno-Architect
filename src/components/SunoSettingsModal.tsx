@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import CopyButton from './CopyButton';
 import { getSunoCredits } from '../services/sunoApi';
-import { SUNO_MODEL_MAPPINGS, buildKnowledgeBase, GET_PROMPT_V1, GET_PROMPT_V2, GET_PROMPT_V3, GET_PROMPT_V4, DEFAULT_SUNO_LIBRARY, DEFAULT_LYRICAL_CONSTRAINTS } from '../constants';
+import { SUNO_MODEL_MAPPINGS, buildKnowledgeBase, GEN_STATIC_PROMPT, GET_PROMPT_V2, GET_PROMPT_V3, GET_PROMPT_V4, DEFAULT_SUNO_LIBRARY, DEFAULT_LYRICAL_CONSTRAINTS } from '../constants';
 import { PromptSettings, SunoLibrary, LyricalConstraints } from '../types';
 
 interface SunoSettingsModalProps {
@@ -111,7 +111,7 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
       const kb = buildKnowledgeBase(currentLib);
 
       if (newVersion === 'v1') {
-          newText = GET_PROMPT_V1(kb);
+          newText = GEN_STATIC_PROMPT(kb);
       } else if (newVersion === 'v2') {
           newText = GET_PROMPT_V2(kb, currentConstraints);
       } else if (newVersion === 'v3') {
@@ -167,7 +167,7 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
     if (promptSettings.version !== 'custom') {
         const kb = buildKnowledgeBase(updatedLibrary);
         if (promptSettings.version === 'v1') {
-            finalSystemPrompt = GET_PROMPT_V1(kb);
+            finalSystemPrompt = GEN_STATIC_PROMPT(kb);
         } else if (promptSettings.version === 'v2') {
             finalSystemPrompt = GET_PROMPT_V2(kb, updatedConstraints);
         } else if (promptSettings.version === 'v3') {
