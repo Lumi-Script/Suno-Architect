@@ -96,15 +96,7 @@ const App: React.FC = () => {
   const [promptSettings, setPromptSettings] = useState<PromptSettings>(() => {
       try {
           const saved = localStorage.getItem('suno_prompt_settings');
-          if (saved) {
-              const parsed = JSON.parse(saved);
-              const kb = buildKnowledgeBase(DEFAULT_SUNO_LIBRARY);
-              if (parsed.version === 'v1' && parsed.customSystemPrompt === GET_PROMPT_V1(kb)) {
-                  parsed.version = 'v4';
-                  parsed.customSystemPrompt = GET_PROMPT_V4();
-              }
-              return parsed;
-          }
+          if (saved) return JSON.parse(saved);
       } catch(e) {}
       
       const kb = buildKnowledgeBase(DEFAULT_SUNO_LIBRARY);
