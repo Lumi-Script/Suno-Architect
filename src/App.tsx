@@ -101,8 +101,8 @@ const App: React.FC = () => {
       
       const kb = buildKnowledgeBase(DEFAULT_SUNO_LIBRARY);
       return {
-          version: 'v1',
-          customSystemPrompt: GET_PROMPT_V1(kb),
+          version: 'v4',
+          customSystemPrompt: GET_PROMPT_V4,
           library: DEFAULT_SUNO_LIBRARY,
           constraints: DEFAULT_LYRICAL_CONSTRAINTS
       };
