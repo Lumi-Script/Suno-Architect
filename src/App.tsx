@@ -4,7 +4,7 @@ import OutputSection from './components/OutputSection/OutputSection';
 import { Header } from './components/Header';
 import { generateSunoPrompt } from './services/geminiService';
 import { GenerationState, SunoClip, ParsedSunoOutput, PromptSettings, ViewMode, FileContext } from './types';
-import { DEFAULT_SUNO_LIBRARY, DEFAULT_LYRICAL_CONSTRAINTS, buildKnowledgeBase, GET_PROMPT_V1 } from './constants';
+import { DEFAULT_SUNO_LIBRARY, DEFAULT_LYRICAL_CONSTRAINTS, buildKnowledgeBase, GET_PROMPT_V4 } from './constants';
 import Footer from './components/Footer';
 import SunoSettingsModal from './components/SunoSettingsModal';
 import { getSunoCredits, getSunoFeed } from './services/sunoApi';
@@ -101,13 +101,12 @@ const App: React.FC = () => {
       
       const kb = buildKnowledgeBase(DEFAULT_SUNO_LIBRARY);
       return {
-          version: 'v4',
-          customSystemPrompt: GET_PROMPT_V4(),
+          version: 'v1',
+          customSystemPrompt: GET_PROMPT_V1(kb),
           library: DEFAULT_SUNO_LIBRARY,
           constraints: DEFAULT_LYRICAL_CONSTRAINTS
       };
   });
-
   const historyFetchedRef = useRef(false);
 
   useEffect(() => {
