@@ -1018,4 +1018,4 @@ export const GET_PROMPT_V3 = (): string => `${GEN_STATIC_PROMPT(STATIC_KB_V3)}`
  * V4: The most advance prompting, with in depth instructions on how to use style tags
  * Instructions for 
 */
-export const GET_PROMPT_V4 = (): string => return `${GEN_STATIC_PROMPT(STATIC_KB_V4)}
+export const GET_PROMPT_V4 = (): string => `${GEN_STATIC_PROMPT(STATIC_KB_V4)}
