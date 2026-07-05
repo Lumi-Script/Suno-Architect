@@ -9,6 +9,14 @@ export const SUNO_MODEL_MAPPINGS = [
   { label: "V3.5", value: "chirp-v3-5" },
   { label: "V3", value: "chirp-v3-0" },
 ];
+
+export const GEMINI_MODEL_MAPPINGS = [
+  { label: "Gemini 3.5 Flash", value: "gemini-3.5-flash" },
+  { label: "Gemini 3.1 Pro (Preview)", value: "gemini-3.1-pro-preview" },
+  { label: "Gemini 3.0 Flash (Preview)", value: "gemini-3-flash-preview" },
+  { label: "Gemini 2.5 Pro", value: "gemini-2.5-pro" },
+  { label: "Gemini 2.5 Flash", value: "gemini-2.5-flash" },
+];
 export const DEFAULT_SUNO_LIBRARY: SunoLibrary = {
   genres: ["Pop", "K-Pop", "J-Pop", "Synth-pop", "Rock", "Hard Rock", "Alt Rock", "Indie Rock", "Prog Rock", "Punk", "Metal", "Hip-Hop", "Rap", "Trap", "R&B", "Soul", "Drill", "EDM", "House", "Techno", "Trance", "Dubstep", "DnB", "Ambient", "Synthwave", "Folk", "Country", "Jazz", "Blues", "Classical", "Reggae", "Latin"],
   structures: ["[Intro]", "[Verse]", "[Pre-Chorus]", "[Chorus]", "[Post-Chorus]", "[Bridge]", "[Outro]", "[Hook]", "[Instrumental Break]", "[Solo Section]", "[Guitar Solo]", "[Drop]", "[Build-up]", "[Spoken Word]"],
