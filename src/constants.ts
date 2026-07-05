@@ -12,6 +12,7 @@ export const SUNO_MODEL_MAPPINGS = [
 
 export const GEMINI_MODEL_MAPPINGS = [
   { label: "Gemini 3.5 Flash", value: "gemini-3.5-flash" },
+  { label: "Gemini 3.1 Flash-Lite", value: "gemini-3.1-flash-lite" },
   { label: "Gemini 3.1 Pro (Preview)", value: "gemini-3.1-pro-preview" },
   { label: "Gemini 3.0 Flash (Preview)", value: "gemini-3-flash-preview" },
   { label: "Gemini 2.5 Pro", value: "gemini-2.5-pro" },
