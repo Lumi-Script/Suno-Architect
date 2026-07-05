@@ -145,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
           <h1 className="text-xl font-bold tracking-tight text-white">
             Suno <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Architect</span>
           </h1>
-          <p className="text-xs text-slate-400 font-medium">Version 1.5.0 - Google Signin Support (Free Access to Pro Models)</p>
+          <p className="text-xs text-slate-400 font-medium">Version 1.5.2 - Download History Button</p>
         </div>
       </div>
       

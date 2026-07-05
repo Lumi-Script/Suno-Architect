@@ -4,6 +4,7 @@ import { getSunoClip, getSunoFeed } from '../../services/sunoApi';
 import HistoryToolbar from './HistoryToolbar';
 import HistoryCard from './HistoryCard';
 import DetailsModal from './DetailsModal';
+import DownloadModal from './DownloadModal';
 import { stripMetaTags } from '../../utils/lyrics';
 
 interface HistorySectionProps {
@@ -60,6 +61,7 @@ const mapSunoClip = (clip: any): SunoClip => {
 
 const HistorySection: React.FC<HistorySectionProps> = ({ history, onUpdateClip, onAddClip, sunoCookie, onFetchHistory, isSyncing, syncProgress }) => {
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   
   // Search & Filter State
   const [searchText, setSearchText] = useState('');
@@ -188,6 +190,7 @@ const HistorySection: React.FC<HistorySectionProps> = ({ history, onUpdateClip, 
             setLimit={setLimit}
             onClearSearch={handleClearSearch}
             isShowingSearchResults={!!(searchText && searchResults)}
+            onDownloadAll={() => setIsDownloadModalOpen(true)}
         />
         
         {displayList.length === 0 ? (
@@ -219,6 +222,13 @@ const HistorySection: React.FC<HistorySectionProps> = ({ history, onUpdateClip, 
                 onUpdateClip={onUpdateClip}
                 sunoCookie={sunoCookie}
                 isDraft={isDraft(selectedClip)}
+            />
+        )}
+
+        {isDownloadModalOpen && (
+            <DownloadModal 
+                clips={displayList} 
+                onClose={() => setIsDownloadModalOpen(false)} 
             />
         )}
     </div>
