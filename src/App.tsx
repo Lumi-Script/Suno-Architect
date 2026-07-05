@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import InputSection from './components/InputSection/InputSection';
 import OutputSection from './components/OutputSection/OutputSection';
-import { Header } from './components/Header';
+import { Header } from './components/Header/Header';
 import { generateSunoPrompt } from './services/geminiService';
 import { GenerationState, SunoClip, ParsedSunoOutput, PromptSettings, ViewMode, FileContext } from './types';
 import { DEFAULT_SUNO_LIBRARY, DEFAULT_LYRICAL_CONSTRAINTS, buildKnowledgeBase, GET_PROMPT_V4 } from './constants';
-import Footer from './components/Footer';
-import SunoSettingsModal from './components/SunoSettingsModal';
+import Footer from './components/Footer/Footer';
+import SunoSettingsModal from './components/Header/SunoSettingsModal';
 import { getSunoCredits, getSunoFeed } from './services/sunoApi';
 import { updateSunoMetadata } from './services/sunoGenApi';
 import HistorySection from './components/HistorySection/HistorySection';

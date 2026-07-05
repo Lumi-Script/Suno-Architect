@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ParsedSunoOutput } from '../../types';
-import CopyButton from '../CopyButton';
+import CopyButton from '../Header/CopyButton';
 import CleanLyricsToggle from '../CleanLyricsToggle';
 
 interface TrackCardProps {

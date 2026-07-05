@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FileContext } from '../../types';
 import FileUploader from './FileUploader';
 import TrackSelector from './TrackSelector';
-import ApiKeyModal from '../ApiKeyModal';
+import ApiKeyModal from '../Header/ApiKeyModal';
 
 interface InputSectionProps {
   onGenerate: (prompt: string, files: FileContext[], numTracks: number) => void;

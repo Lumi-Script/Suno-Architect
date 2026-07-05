@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ParsedSunoOutput } from '../../types';
 import { triggerSunoGeneration } from '../../services/sunoGenApi';
-import EditSongModal from '../EditSongModal';
+import EditSongModal from '../HistorySection/EditSongModal';
 import AlbumHeader from './AlbumHeader';
 import TrackCard from './TrackCard';
 import CleanLyricsToggle from '../CleanLyricsToggle';

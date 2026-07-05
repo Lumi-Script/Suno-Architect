@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SunoClip } from '../../types';
-import CopyButton from '../CopyButton';
+import CopyButton from '../Header/CopyButton';
 import { getLyricAlignment } from '../../services/sunoApi';
 import { matchWordsToPrompt, stripMetaTags, generateLrc, generateSrt } from '../../utils/lyrics';
 
