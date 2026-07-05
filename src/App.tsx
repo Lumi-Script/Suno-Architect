@@ -12,6 +12,7 @@ import { updateSunoMetadata } from './services/sunoGenApi';
 import HistorySection from './components/HistorySection/HistorySection';
 import VisualizerSection from './components/VisualizerSection/VisualizerSection';
 import { stripMetaTags } from './utils/lyrics';
+import { get, set } from './utils/idb';
 
 // Helper to map API response to SunoClip
 const mapSunoClip = (clip: any): SunoClip => {
@@ -64,15 +65,38 @@ const App: React.FC = () => {
 
   const [view, setView] = useState<ViewMode>('generator');
   
-  const [history, setHistory] = useState<SunoClip[]>(() => {
-    try {
-      const saved = localStorage.getItem('suno_history');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("Failed to parse history from local storage", e);
-      return [];
-    }
-  });
+  const [history, setHistory] = useState<SunoClip[]>([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        let saved = await get('suno_history');
+        if (!saved) {
+           const oldSaved = localStorage.getItem('suno_history');
+           if (oldSaved) {
+              saved = JSON.parse(oldSaved);
+              await set('suno_history', saved);
+              localStorage.removeItem('suno_history');
+           }
+        }
+        if (saved && Array.isArray(saved)) {
+           setHistory(prev => {
+               const map = new Map<string, SunoClip>(saved.map((c: any) => [c.id, c]));
+               prev.forEach(p => map.set(p.id, p)); // prev contains freshly fetched clips if any, prefer them
+               return Array.from(map.values()).sort((a, b) => 
+                   new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+               );
+           });
+        }
+      } catch (e) {
+        console.error("Failed to load history from indexedDB", e);
+      } finally {
+        setHistoryLoaded(true);
+      }
+    };
+    loadHistory();
+  }, []);
   
   const [customApiKey, setCustomApiKey] = useState('');
   const [isKeyValid, setIsKeyValid] = useState(false);
@@ -129,8 +153,10 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('suno_history', JSON.stringify(history));
-  }, [history]);
+    if (historyLoaded) {
+       set('suno_history', history).catch(console.error);
+    }
+  }, [history, historyLoaded]);
 
   useEffect(() => {
       localStorage.setItem('suno_prompt_settings', JSON.stringify(promptSettings));
