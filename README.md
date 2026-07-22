@@ -42,4 +42,4 @@
 - Requires the worker to forward Suno generation requests and avoid cors issues, ~~all other API end points seem to work fine.~~ - Suno has updated almost all endpoints to be cors locked, requiring the worker for forwarding. The CDN (for images and mp3 downloads) still works directly.
 
 ## Credits
-- [https://github.com/gcui-art/suno-api/](https://github.com/gcui-art/suno-api/) has reverse engineered most of the API already, so I didn't need to do it myself. Only took some tweaking, none of the code is directly use but it sure helped speeding up understanding the API. Also has interfaces and types to know what response to expect from the API - very helpful.
+- [https://github.com/gcui-art/suno-api/](https://github.com/gcui-art/suno-api/) has reverse engineered most of the API already, so I didn't need to do it myself. _None of the code is directly used but it helped speeding up understanding the API. Also has interfaces and types to know what response to expect from the API._
