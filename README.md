@@ -1,5 +1,10 @@
 # Suno Architect - Auto Generate Suno Prompts
-- Uses Gemini Flash 2.5 or 3.0 flash (which supports free keys, see [https://aistudio.google.com/api-keys](https://aistudio.google.com/api-keys))
+- Uses various free and paid Gemini models
+- Gemini Flash 3, 3.1-lite, 3.5-lite, 3.5 and 3.6 have generous free limits.
+  - Flash-lite models have 20/min and 500/day limits
+  - Non-lite Flash models have 5/min and 20/day limits
+  - [Full Rate Limits](https://aistudio.google.com/rate-limit) - _Paid is required for Pro models._
+  - Create a key in [aistudio](https://aistudio.google.com/api-keys) with billing disabled for free flash model access.
 
 ## Featues
 
