@@ -1,5 +1,5 @@
 # Suno Architect - Auto Generate Suno Prompts
-- Uses various free and paid Gemini models
+- Various free and paid Gemini models available
 - Gemini Flash 3, 3.1-lite, 3.5-lite, 3.5 and 3.6 have generous free limits.
   - Flash-lite models have 20/min and 500/day limits
   - Non-lite Flash models have 5/min and 20/day limits
