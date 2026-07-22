@@ -102,7 +102,7 @@ const App: React.FC = () => {
   const [isKeyValid, setIsKeyValid] = useState(false);
   
   const [geminiModel, setGeminiModel] = useState<string>(() => {
-      return localStorage.getItem('gemini_model') || 'gemini-3.5-flash';
+      return localStorage.getItem('gemini_model') || 'gemini-3.6-flash';
   });
 
   const handleGeminiModelChange = (model: string) => {
