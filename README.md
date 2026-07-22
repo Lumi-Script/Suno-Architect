@@ -13,7 +13,7 @@
   - Song title
   - Suno style settings (weirdness %, style %, exclude, and male/female/none)
   - Lyrics including Suno style tags
-  - Lyrics without tags, copy pastable for elsewhere. Also used via the API below to remove tags in displayed lyrics.
+  - Lyrics without tags, copy pastable for elsewhere. Also used via the API below to remove tags in displayed lyrics. (Optional)
 - **OPTIONAL:** Utilises Suno API
   - Requires an easily obtainable token (which may expire at times)
   - Adds a button to send directly to the Suno API
