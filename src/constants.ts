@@ -267,11 +267,6 @@ Example: \`[chorus | style: phonk hook, vocals: autotune-light, instruments: 808
 - Parameters: \`linear\`, \`cyclical\`, \`reversed\`, \`mirrored\`
 - Notes: Helps structure long compositions.
 
-### [length]
-- Group: control
-- Purpose: Target track duration in seconds.
-- Usage: \`[length: (track legnth in seconds, int)]\`
-
 ### [compression]
 - Group: control
 - Purpose: Dynamic range control hint.
@@ -867,6 +862,7 @@ Example: \`[chorus | style: phonk hook, vocals: autotune-light, instruments: 808
 | \`[loop]\` | Removed | Manually copy structures |
 | \`[autotune]\` | Deprecated | Describe in style text |
 | \`[mix]\`, \`[master]\`, \`[filter]\`, \`[panning]\`, \`[volume]\` | Ineffective | N/A |
+| \`[length]\` | Deprecated | Replaced by slider |
 
 ---
 
@@ -904,7 +900,6 @@ Example: \`[chorus | style: phonk hook, vocals: autotune-light, instruments: 808
 [mood: mysterious, vast]
 [tempo: very slow, drifting]
 [instruments: synth pads, deep drones, distant bells]
-[length: 360]
 [intro | minimal, emerging from silence]
 [verse | layers building slowly]
 [chorus | full texture, shimmering]
@@ -920,7 +915,6 @@ Example: \`[chorus | style: phonk hook, vocals: autotune-light, instruments: 808
 [tempo: mid-tempo]
 [vocals: warm female, intimate]
 [instruments: acoustic guitar, soft drums, piano]
-[length: 210]
 [intro | guitar fingerpicking]
 [verse 1]
 Lyrics here...
