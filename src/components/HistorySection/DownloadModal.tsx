@@ -10,6 +10,7 @@ interface DownloadModalProps {
 const DownloadModal: React.FC<DownloadModalProps> = ({ clips, onClose }) => {
   const [includeCovers, setIncludeCovers] = useState(true);
   const [includeMp3, setIncludeMp3] = useState(true);
+  const [includeMp4, setIncludeMp4] = useState(false);
   const [downloadMethod, setDownloadMethod] = useState<'folder' | 'zip'>('zip');
   const [concurrentDownloads, setConcurrentDownloads] = useState<number>(4);
   
@@ -46,6 +47,12 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ clips, onClose }) => {
         files.push({
           url: `https://cdn1.suno.ai/${clip.id}.mp3`,
           filename: `${uniqueBaseName}.mp3`
+        });
+      }
+      if (includeMp4) {
+        files.push({
+          url: `https://cdn1.suno.ai/${clip.id}.mp4`,
+          filename: `${uniqueBaseName}.mp4`
         });
       }
       if (includeCovers && (clip.imageLargeUrl || clip.imageUrl)) {
@@ -232,6 +239,19 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ clips, onClose }) => {
                 />
                 <span className="text-slate-200">Include MP3 Audio</span>
             </label>
+            <label className={`flex items-center gap-3 ${downloadMethod === 'zip' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+                <input 
+                    type="checkbox" 
+                    checked={includeMp4} 
+                    onChange={(e) => setIncludeMp4(e.target.checked)}
+                    disabled={isDownloading || downloadMethod === 'zip'}
+                    className="w-4 h-4 rounded bg-slate-800 border-slate-600 text-purple-600 focus:ring-purple-600 focus:ring-offset-slate-900 disabled:opacity-50"
+                />
+                <span className="text-slate-200">
+                    Include MP4 Video 
+                    {downloadMethod === 'zip' && <span className="text-xs text-yellow-500/80 ml-2">(Requires "Direct to Folder")</span>}
+                </span>
+            </label>
 
             <div className="pt-4 border-t border-slate-700/50">
                 <p className="text-sm font-semibold text-slate-300 mb-3">Concurrency (Threads)</p>
@@ -263,7 +283,10 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ clips, onClose }) => {
                             name="method" 
                             value="zip" 
                             checked={downloadMethod === 'zip'}
-                            onChange={() => setDownloadMethod('zip')}
+                            onChange={() => {
+                                setDownloadMethod('zip');
+                                setIncludeMp4(false);
+                            }}
                             disabled={isDownloading}
                             className="text-purple-600 bg-slate-800 border-slate-600 focus:ring-purple-600 focus:ring-offset-slate-900"
                         />
@@ -326,7 +349,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ clips, onClose }) => {
             {!isDownloading && (
                 <button 
                     onClick={handleDownload}
-                    disabled={!includeCovers && !includeMp3}
+                    disabled={!includeCovers && !includeMp3 && !includeMp4}
                     className="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                     Download Now
