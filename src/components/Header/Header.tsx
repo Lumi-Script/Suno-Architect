@@ -265,7 +265,7 @@ export const Header: React.FC<HeaderProps> = ({
                 title="Select Suno Model"
               >
                  <span className="truncate">
-                    {SUNO_MODEL_MAPPINGS.find(m => m.value === sunoModel)?.label || 'Select Model'}
+                    {SUNO_MODEL_MAPPINGS.find(m => m.value === sunoModel)?.label || sunoModel || 'Select Model'}
                  </span>
                  <svg 
                     xmlns="http://www.w3.org/2000/svg" 
