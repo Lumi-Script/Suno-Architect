@@ -80,7 +80,7 @@ export interface PromptSettings {
   library: SunoLibrary;
   constraints: LyricalConstraints;
   includeVoice?: boolean;
-  transactionUuid?: string;
+  personaId?: string;
 }
 
 export interface FileContext {

@@ -63,8 +63,8 @@ const OutputSection: React.FC<OutputSectionProps> = ({ results, sunoCookie, suno
     const shouldClean = cleanLyricsToggles[index] !== false;
     
     try {
-        const txUuid = promptSettings?.includeVoice ? promptSettings.transactionUuid : undefined;
-        const result = await triggerSunoGeneration(data, sunoCookie, sunoModel, txUuid);
+        const pId = promptSettings?.includeVoice ? promptSettings.personaId : undefined;
+        const result = await triggerSunoGeneration(data, sunoCookie, sunoModel, pId);
         setSyncStatuses(prev => ({ ...prev, [index]: { loading: false, success: true } }));
         if (onSyncSuccess) {
             onSyncSuccess(result, data, shouldClean);

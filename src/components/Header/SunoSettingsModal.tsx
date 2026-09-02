@@ -52,7 +52,7 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
   const [constRhymes, setConstRhymes] = useState('');
 
   const [includeVoice, setIncludeVoice] = useState(false);
-  const [transactionUuid, setTransactionUuid] = useState('');
+  const [personaId, setPersonaId] = useState('');
 
   const [isCustomMode, setIsCustomMode] = useState(false);
 
@@ -79,7 +79,7 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
         setConstRhymes(initialPromptSettings.constraints.forbiddenRhymes);
         
         setIncludeVoice(initialPromptSettings.includeVoice || false);
-        setTransactionUuid(initialPromptSettings.transactionUuid || '');
+        setPersonaId(initialPromptSettings.personaId || '');
     }
   }, [isOpen, initialCookie, initialModel, currentCredits, initialPromptSettings]);
 
@@ -186,8 +186,8 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
         }
     }
 
-    if (includeVoice && !transactionUuid.trim()) {
-        alert("Transaction UUID is required when Vocal Selection is enabled.");
+    if (includeVoice && !personaId.trim()) {
+        alert("Persona ID is required when Vocal Selection is enabled.");
         return;
     }
 
@@ -197,7 +197,7 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
         library: updatedLibrary,
         constraints: updatedConstraints,
         includeVoice,
-        transactionUuid
+        personaId
     };
 
     onSave(cookie, model, finalSettings);
@@ -413,12 +413,12 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
                             
                             {includeVoice && (
                                 <div className="mt-3">
-                                    <label className="block text-xs font-medium text-slate-400 mb-1">Transaction UUID <span className="text-red-400">*</span></label>
+                                    <label className="block text-xs font-medium text-slate-400 mb-1">Persona ID <span className="text-red-400">*</span></label>
                                     <input
                                         type="text"
-                                        value={transactionUuid}
-                                        onChange={(e) => setTransactionUuid(e.target.value)}
-                                        placeholder="e.g. cfdfd7ae-85a8-4f62-b660-4caa185a26e6"
+                                        value={personaId}
+                                        onChange={(e) => setPersonaId(e.target.value)}
+                                        placeholder="e.g. c7347915-aabc-452b-af60-cf5593003e8d"
                                         required={includeVoice}
                                         className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50"
                                     />
