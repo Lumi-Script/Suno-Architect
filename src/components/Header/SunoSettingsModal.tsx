@@ -50,9 +50,9 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
   const [constAdjectives, setConstAdjectives] = useState('');
   const [constPhrases, setConstPhrases] = useState('');
   const [constRhymes, setConstRhymes] = useState('');
-
   const [includeVoice, setIncludeVoice] = useState(false);
   const [personaId, setPersonaId] = useState('');
+  const [audioWeight, setAudioWeight] = useState(100);
 
   const [isCustomMode, setIsCustomMode] = useState(false);
 
@@ -80,6 +80,7 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
         
         setIncludeVoice(initialPromptSettings.includeVoice || false);
         setPersonaId(initialPromptSettings.personaId || '');
+        setAudioWeight(initialPromptSettings.audioWeight ?? 100);
     }
   }, [isOpen, initialCookie, initialModel, currentCredits, initialPromptSettings]);
 
@@ -197,7 +198,8 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
         library: updatedLibrary,
         constraints: updatedConstraints,
         includeVoice,
-        personaId
+        personaId,
+        audioWeight
     };
 
     onSave(cookie, model, finalSettings);
@@ -412,16 +414,33 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
                             </label>
                             
                             {includeVoice && (
-                                <div className="mt-3">
-                                    <label className="block text-xs font-medium text-slate-400 mb-1">Persona ID <span className="text-red-400">*</span></label>
-                                    <input
-                                        type="text"
-                                        value={personaId}
-                                        onChange={(e) => setPersonaId(e.target.value)}
-                                        placeholder="e.g. c7347915-aabc-452b-af60-cf5593003e8d"
-                                        required={includeVoice}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50"
-                                    />
+                                <div className="mt-3 space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1">Persona ID <span className="text-red-400">*</span></label>
+                                        <input
+                                            type="text"
+                                            value={personaId}
+                                            onChange={(e) => setPersonaId(e.target.value)}
+                                            placeholder="e.g. c7347915-aabc-452b-af60-cf5593003e8d"
+                                            required={includeVoice}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <div className="flex justify-between mb-1">
+                                            <label className="text-xs font-medium text-slate-400">Audio Weight</label>
+                                            <span className="text-xs text-pink-400 font-mono">{audioWeight}%</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="100"
+                                            step="1"
+                                            value={audioWeight}
+                                            onChange={(e) => setAudioWeight(parseInt(e.target.value))}
+                                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                                        />
+                                    </div>
                                 </div>
                             )}
                         </div>

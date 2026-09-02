@@ -4,7 +4,8 @@ export const triggerSunoGeneration = async (
   data: ParsedSunoOutput, 
   cookie: string,
   model: string = "chirp-bluejay",
-  personaId?: string
+  personaId?: string,
+  audioWeight?: number
 ): Promise<any> => {
   if (!cookie) {
     throw new Error("Suno Cookie/Token is missing.");
@@ -16,6 +17,7 @@ export const triggerSunoGeneration = async (
   // Normalize 0-100 to 0.0-1.0
   const weirdness = typeof data.weirdness === 'number' ? data.weirdness / 100 : 0.5;
   const styleWeight = typeof data.styleInfluence === 'number' ? data.styleInfluence / 100 : 0.5;
+  const aWeightNormalized = audioWeight !== undefined ? audioWeight / 100 : 1;
 
   // Construct payload for Custom Mode
   const payload = {
@@ -37,6 +39,7 @@ export const triggerSunoGeneration = async (
     }),
     metadata: {
         create_mode: "custom",
+        ...(personaId ? { audio_weight: aWeightNormalized } : {}),
         control_sliders: {
             weirdness_constraint: weirdness,
             style_weight: styleWeight

@@ -64,7 +64,8 @@ const OutputSection: React.FC<OutputSectionProps> = ({ results, sunoCookie, suno
     
     try {
         const pId = promptSettings?.includeVoice ? promptSettings.personaId : undefined;
-        const result = await triggerSunoGeneration(data, sunoCookie, sunoModel, pId);
+        const aWeight = promptSettings?.includeVoice ? promptSettings.audioWeight : undefined;
+        const result = await triggerSunoGeneration(data, sunoCookie, sunoModel, pId, aWeight);
         setSyncStatuses(prev => ({ ...prev, [index]: { loading: false, success: true } }));
         if (onSyncSuccess) {
             onSyncSuccess(result, data, shouldClean);

@@ -81,6 +81,7 @@ export interface PromptSettings {
   constraints: LyricalConstraints;
   includeVoice?: boolean;
   personaId?: string;
+  audioWeight?: number;
 }
 
 export interface FileContext {
