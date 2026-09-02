@@ -474,6 +474,7 @@ const App: React.FC = () => {
                               results={state.result} 
                               sunoCookie={sunoCookie}
                               sunoModel={sunoModel}
+                              promptSettings={promptSettings}
                               onSyncSuccess={handleSyncSuccess}
                               onUpdateTrack={handleUpdateResult}
                           />

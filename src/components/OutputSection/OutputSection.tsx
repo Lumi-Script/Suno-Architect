@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ParsedSunoOutput } from '../../types';
+import { ParsedSunoOutput, PromptSettings } from '../../types';
 import { triggerSunoGeneration } from '../../services/sunoGenApi';
 import EditSongModal from '../HistorySection/EditSongModal';
 import AlbumHeader from './AlbumHeader';
@@ -10,11 +10,12 @@ interface OutputSectionProps {
   results: ParsedSunoOutput[];
   sunoCookie?: string;
   sunoModel?: string;
+  promptSettings?: PromptSettings;
   onSyncSuccess?: (response: any, originalData: ParsedSunoOutput, cleanLyrics: boolean) => void;
   onUpdateTrack?: (index: number, updatedTrack: ParsedSunoOutput) => void;
 }
 
-const OutputSection: React.FC<OutputSectionProps> = ({ results, sunoCookie, sunoModel, onSyncSuccess, onUpdateTrack }) => {
+const OutputSection: React.FC<OutputSectionProps> = ({ results, sunoCookie, sunoModel, promptSettings, onSyncSuccess, onUpdateTrack }) => {
   const [syncAllLoading, setSyncAllLoading] = useState(false);
   const [syncStatuses, setSyncStatuses] = useState<Record<number, {loading: boolean, error?: string, success?: boolean}>>({});
   const [cleanLyricsToggles, setCleanLyricsToggles] = useState<Record<number, boolean>>({});
@@ -62,7 +63,8 @@ const OutputSection: React.FC<OutputSectionProps> = ({ results, sunoCookie, suno
     const shouldClean = cleanLyricsToggles[index] !== false;
     
     try {
-        const result = await triggerSunoGeneration(data, sunoCookie, sunoModel);
+        const txUuid = promptSettings?.includeVoice ? promptSettings.transactionUuid : undefined;
+        const result = await triggerSunoGeneration(data, sunoCookie, sunoModel, txUuid);
         setSyncStatuses(prev => ({ ...prev, [index]: { loading: false, success: true } }));
         if (onSyncSuccess) {
             onSyncSuccess(result, data, shouldClean);

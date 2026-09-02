@@ -79,6 +79,8 @@ export interface PromptSettings {
   customSystemPrompt: string;
   library: SunoLibrary;
   constraints: LyricalConstraints;
+  includeVoice?: boolean;
+  transactionUuid?: string;
 }
 
 export interface FileContext {

@@ -3,7 +3,8 @@ import { ParsedSunoOutput } from "../types";
 export const triggerSunoGeneration = async (
   data: ParsedSunoOutput, 
   cookie: string,
-  model: string = "chirp-bluejay"
+  model: string = "chirp-bluejay",
+  transactionUuid?: string
 ): Promise<any> => {
   if (!cookie) {
     throw new Error("Suno Cookie/Token is missing.");
@@ -27,6 +28,7 @@ export const triggerSunoGeneration = async (
     continue_clip_id: null,
     continue_at: null,
     generation_type: "TEXT",
+    ...(transactionUuid ? { transaction_uuid: transactionUuid } : {}),
     metadata: {
         create_mode: "custom",
         control_sliders: {

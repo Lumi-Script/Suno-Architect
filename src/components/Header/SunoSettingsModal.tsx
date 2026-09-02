@@ -51,6 +51,9 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
   const [constPhrases, setConstPhrases] = useState('');
   const [constRhymes, setConstRhymes] = useState('');
 
+  const [includeVoice, setIncludeVoice] = useState(false);
+  const [transactionUuid, setTransactionUuid] = useState('');
+
   const [isCustomMode, setIsCustomMode] = useState(false);
 
   // Effect to load initial state when modal opens
@@ -74,6 +77,9 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
         setConstAdjectives(initialPromptSettings.constraints.forbiddenAdjectives.join(', '));
         setConstPhrases(initialPromptSettings.constraints.forbiddenPhrases.join(', '));
         setConstRhymes(initialPromptSettings.constraints.forbiddenRhymes);
+        
+        setIncludeVoice(initialPromptSettings.includeVoice || false);
+        setTransactionUuid(initialPromptSettings.transactionUuid || '');
     }
   }, [isOpen, initialCookie, initialModel, currentCredits, initialPromptSettings]);
 
@@ -180,11 +186,18 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
         }
     }
 
+    if (includeVoice && !transactionUuid.trim()) {
+        alert("Transaction UUID is required when Vocal Selection is enabled.");
+        return;
+    }
+
     const finalSettings: PromptSettings = {
         version: promptSettings.version,
         customSystemPrompt: finalSystemPrompt,
         library: updatedLibrary,
-        constraints: updatedConstraints
+        constraints: updatedConstraints,
+        includeVoice,
+        transactionUuid
     };
 
     onSave(cookie, model, finalSettings);
@@ -387,6 +400,31 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
                                 />
                             </div>
                         )}
+                        <div className="mt-4 pt-4 border-t border-slate-700/50">
+                            <label className="flex items-center gap-2 mb-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={includeVoice}
+                                    onChange={(e) => setIncludeVoice(e.target.checked)}
+                                    className="w-4 h-4 text-pink-500 bg-slate-900 border-slate-700 rounded focus:ring-pink-500/50"
+                                />
+                                <span className="text-sm font-medium text-slate-300">Vocal Selection (Include Voice)</span>
+                            </label>
+                            
+                            {includeVoice && (
+                                <div className="mt-3">
+                                    <label className="block text-xs font-medium text-slate-400 mb-1">Transaction UUID <span className="text-red-400">*</span></label>
+                                    <input
+                                        type="text"
+                                        value={transactionUuid}
+                                        onChange={(e) => setTransactionUuid(e.target.value)}
+                                        placeholder="e.g. cfdfd7ae-85a8-4f62-b660-4caa185a26e6"
+                                        required={includeVoice}
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
