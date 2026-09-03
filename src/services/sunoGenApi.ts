@@ -39,10 +39,10 @@ export const triggerSunoGeneration = async (
     }),
     metadata: {
         create_mode: "custom",
-        ...(personaId ? { audio_weight: aWeightNormalized } : {}),
         control_sliders: {
             weirdness_constraint: weirdness,
-            style_weight: styleWeight
+            style_weight: styleWeight,
+            ...(personaId ? { audio_weight: aWeightNormalized } : {})
         },
         can_control_sliders: [
             "weirdness_constraint",
