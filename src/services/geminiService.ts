@@ -95,7 +95,10 @@ export const generateSunoPrompt = async (
       contents: { parts },
       config: {
         systemInstruction: finalSystemInstruction,
-        temperature: 0.8,
+        temperature: 1.0,
+        thinking_config=types.ThinkingConfig(
+          thinking_level=types.ThinkingLevel.LOW
+        )
       },
     });
 
