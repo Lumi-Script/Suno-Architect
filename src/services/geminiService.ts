@@ -96,9 +96,9 @@ export const generateSunoPrompt = async (
       config: {
         systemInstruction: finalSystemInstruction,
         temperature: 1.0,
-        thinkingConfig=Type.ThinkingConfig(
-          thinkingLevel=Type.ThinkingLevel.LOW
-        )
+        thinkingConfig: {
+          thinkingLevel: Type.ThinkingLevel.LOW
+        },
       },
     });
 
