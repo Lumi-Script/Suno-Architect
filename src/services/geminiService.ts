@@ -7,7 +7,7 @@ export const generateSunoPrompt = async (
   userInput: string, 
   customApiKey?: string,
   systemInstruction?: string,
-  geminiModel: string = "gemini-3-flash-preview",
+  geminiModel: string = "gemini-3,8-flash",
   contextFiles: FileContext[] = [],
   numTracks: number = 1
 ): Promise<ParsedSunoOutput[]> => {
