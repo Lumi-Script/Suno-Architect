@@ -397,7 +397,7 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
                                     type="text"
                                     value={model}
                                     onChange={(e) => setModel(e.target.value)}
-                                    placeholder="e.g. chirp-fenix-custom"
+                                    placeholder="e.g. chirp-custom:id"
                                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/50"
                                 />
                             </div>
