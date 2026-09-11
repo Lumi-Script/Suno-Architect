@@ -1,3 +1,6 @@
+# Working on a rewrite due to substantial changes to API - WIP
+
+
 # Suno Architect - Auto Generate Suno Prompts
 - Various free and paid Gemini models available
 - Gemini Flash 3, 3.1-lite, 3.5-lite, 3.5 and 3.6 have generous free limits.
