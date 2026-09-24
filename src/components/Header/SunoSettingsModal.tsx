@@ -280,6 +280,7 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
                             1. Go to suno.com and log in.<br/>
                             2. Open Developer Tools (F12) &gt; Console.<br/>
                             3. Paste this code and hit Enter.
+                            4. The session token will be copied to your clipboard, paste it here.
                         </p>
                         <div className="bg-black/50 rounded-lg p-3 overflow-x-auto border border-white/5 shadow-inner">
                             <pre className="text-[10px] font-mono text-slate-400 whitespace-pre-wrap">{tokenSnippet}</pre>
