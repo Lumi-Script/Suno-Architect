@@ -225,18 +225,7 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
       }
   };
 
-  const tokenSnippet = `await (async function() {
-    const sessionCookie = (await window.cookieStore.get("__session")).value
-
-    if (sessionCookie) {
-        console.log("%c Suno Session Token Found! ", "background: #222; color: #bada55; font-size: 14px;");
-        console.log(sessionCookie);
-        copy(sessionCookie); 
-        console.log("%c Result copied to clipboard automatically.", "color: gray;");
-    } else {
-        console.error("Session token not found. Make sure you are logged in at suno.com");
-    }
-})();`;
+  const tokenSnippet = `copy(await (await window.cookieStore.get("__session")).value)`;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
