@@ -397,9 +397,14 @@ const App: React.FC = () => {
       setHistory(prev => [...draftClips, ...prev]);
 
     } catch (err: any) {
+      let errorMsg = err.message || "Something went wrong.";
+      if (errorMsg.includes("503") || errorMsg.includes("429") || errorMsg.includes("overloaded") || errorMsg.includes("timeout")) {
+          errorMsg += "\n\n💡 Tip: The Gemini API seems to be overloaded right now. Trying a different model from the top-right Settings menu (e.g. Gemini Flash-Lite) often works!";
+      }
+
       setState({
         isLoading: false,
-        error: err.message || "Something went wrong.",
+        error: errorMsg,
         result: null,
       });
     }

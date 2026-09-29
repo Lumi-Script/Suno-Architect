@@ -2,10 +2,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SunoClip, AlignedWord, Qt6Style } from '../../../types';
 import { getLyricAlignment, getSunoClip } from '../../../services/sunoApi';
-import { ASPECT_RATIOS } from '../../../constants';
+import { ASPECT_RATIOS, VISUALIZER_FONTS } from '../../../constants';
 import { drawCover, drawQt6Visualizer, drawScrollingLyrics, formatTime } from '../../../utils/visualizer';
 import { groupLyricsByLines, matchWordsToPrompt, groupWordsByTiming, stripMetaTags, getCleanAlignedWords } from '../../../utils/lyrics';
 import { performOfflineRender } from '../../../utils/offlineRender';
+import { suggestVisualizerSettings } from '../../../services/geminiService';
 
 export const useVisualizer = (
     history: SunoClip[],
@@ -509,6 +510,45 @@ export const useVisualizer = (
         }
     };
 
+    const handleAiSuggest = async () => {
+        let base64Image: string | undefined;
+        let mimeType: string | undefined;
+
+        if (imgSrc) {
+            try {
+                const response = await fetch(imgSrc);
+                const blob = await response.blob();
+                mimeType = blob.type;
+                base64Image = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                console.warn("Could not fetch image for AI suggestion", e);
+            }
+        }
+
+        const suggestion = await suggestVisualizerSettings(apiKey, geminiModel, base64Image, mimeType);
+        
+        if (suggestion.font) {
+            const cleanSuggested = suggestion.font.toLowerCase().replace(/['"]/g, '').split(',')[0].trim();
+            const matchingFont = VISUALIZER_FONTS.find(f => {
+                const cleanValue = f.value.toLowerCase().replace(/['"]/g, '').split(',')[0].trim();
+                return cleanValue === cleanSuggested || f.value === suggestion.font;
+            });
+            
+            if (matchingFont) {
+                setFontFamily(matchingFont.value);
+            } else {
+                setFontFamily(suggestion.font);
+            }
+        }
+        if (suggestion.activeColor) setActiveColor(suggestion.activeColor);
+        if (suggestion.inactiveColor) setInactiveColor(suggestion.inactiveColor);
+    };
+
     return {
         state: {
             selectedClipId, manualId, aspectRatio, visualMode, customBg, customAudio,
@@ -530,7 +570,8 @@ export const useVisualizer = (
         },
         handlers: {
             handleManualLoad, handleFileUpload, handleAudioUpload, handleApplyLyrics,
-            handleSmartGroup, handleSeek, togglePlay, startOfflineRender, handleImageError, setDuration
+            handleSmartGroup, handleSeek, togglePlay, startOfflineRender, handleImageError, setDuration,
+            handleAiSuggest
         }
     };
 };

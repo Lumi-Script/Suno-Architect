@@ -139,6 +139,7 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({ history, sunoCook
                             setters.setVideoBitrateMode('variable');
                             setters.setFps(30);
                         }}
+                        onAiSuggest={handlers.handleAiSuggest}
                      />
 
                      <ColorEventsManager 

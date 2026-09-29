@@ -27,6 +27,7 @@ interface VisualizerSettingsProps {
     videoBitrateMode: 'constant' | 'variable';
     setVideoBitrateMode: (val: 'constant' | 'variable') => void;
     onReset: () => void;
+    onAiSuggest?: () => Promise<void>;
 }
 
 const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
@@ -34,8 +35,27 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
     smoothingFactor, setSmoothingFactor, verticalOffset, setVerticalOffset, inactiveOpacity, setInactiveOpacity,
     visualMode, qt6Style, setQt6Style, qt6BarCount, setQt6BarCount, qt6Sensitivity, setQt6Sensitivity, 
     videoBitrate, setVideoBitrate, videoBitrateMode, setVideoBitrateMode,
-    onReset
+    onReset, onAiSuggest
 }) => {
+  const [isSuggesting, setIsSuggesting] = React.useState(false);
+
+  const handleSuggest = async () => {
+      if (!onAiSuggest) return;
+      setIsSuggesting(true);
+      try {
+          await onAiSuggest();
+      } catch (e: any) {
+          console.error(e);
+          let errorMsg = e.message || "Failed to generate AI suggestion.";
+          if (errorMsg.includes("503") || errorMsg.includes("429") || errorMsg.includes("overloaded") || errorMsg.includes("timeout")) {
+              errorMsg += "\n\n💡 Tip: The Gemini API seems to be overloaded right now. Trying a different model from the top-right Settings menu (e.g. Gemini Flash-Lite) often works!";
+          }
+          alert(errorMsg);
+      } finally {
+          setIsSuggesting(false);
+      }
+  };
+
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
@@ -53,6 +73,11 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
                     {VISUALIZER_FONTS.map(f => (
                         <option key={f.value} value={f.value}>{f.label}</option>
                     ))}
+                    {!VISUALIZER_FONTS.some(f => f.value === fontFamily) && (
+                        <option key="custom" value={fontFamily}>
+                            {fontFamily.split(',')[0].replace(/['"]/g, '')} (AI Suggested)
+                        </option>
+                    )}
                 </select>
             </div>
             <div>
@@ -134,6 +159,27 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
                     <option value="constant">Constant (CBR)</option>
                 </select>
             </div>
+            {onAiSuggest && (
+                <div className="col-span-2 md:col-span-1 flex items-end">
+                    <button 
+                        onClick={handleSuggest}
+                        disabled={isSuggesting}
+                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-1.5 px-3 rounded flex items-center justify-center transition-colors disabled:opacity-50 h-[34px]"
+                    >
+                        {isSuggesting ? (
+                            <span className="flex items-center gap-2">
+                                <svg className="animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Suggesting...
+                            </span>
+                        ) : (
+                            '✨ AI Suggestions'
+                        )}
+                    </button>
+                </div>
+            )}
         </div>
 
         {/* Qt6 Specific Controls */}

@@ -100,8 +100,26 @@ export const performOfflineRender = async (
             let actualAudioBitrate = config.bitrate;
             if (actualAudioBitrate === 0) {
                 // (Bytes * 8) / seconds = bits per second
-                actualAudioBitrate = Math.round((arrayBuffer.byteLength * 8) / decodedBuffer.duration);
-                console.log(`Matched input audio bitrate: ${actualAudioBitrate} bps`);
+                const calculatedBitrate = Math.round((arrayBuffer.byteLength * 8) / decodedBuffer.duration);
+                
+                if (calculatedBitrate < 1000000) {
+                    // Windows MediaFoundation AAC encoder is extremely strict and only accepts standard discrete bitrates.
+                    const standardBitrates = [64000, 96000, 128000, 160000, 192000, 256000];
+                    let closest = standardBitrates[0];
+                    let minDiff = Math.abs(calculatedBitrate - closest);
+                    
+                    for (const br of standardBitrates) {
+                        const diff = Math.abs(calculatedBitrate - br);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            closest = br;
+                        }
+                    }
+                    actualAudioBitrate = closest;
+                } else {
+                    actualAudioBitrate = calculatedBitrate;
+                }
+                console.log(`Matched input audio bitrate: ${actualAudioBitrate} bps (Original: ${calculatedBitrate} bps)`);
             }
 
             const { customVideo, bitrate, ...workerConfig } = config;
