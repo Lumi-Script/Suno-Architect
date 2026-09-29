@@ -77,7 +77,7 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({ history, sunoCook
                          <audio 
                             ref={refs.audioRef} 
                             controls 
-                            src={state.customAudio ? state.customAudio.url : `https://cdn1.suno.ai/${state.selectedClipId}.mp3`}
+                            src={state.customAudio ? state.customAudio.url : ''}
                             crossOrigin="anonymous" // CRITICAL FOR RECORDING
                             className="w-full h-8"
                             onLoadedMetadata={(e) => handlers.setDuration(e.currentTarget.duration)}
@@ -97,6 +97,7 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({ history, sunoCook
                         onStartRender={handlers.startOfflineRender}
                         isPreparing={state.isPreparing}
                         hasAlignment={!!state.alignment}
+                        hasAudio={!!state.customAudio}
                      />
                  </div>
 

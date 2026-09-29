@@ -12,6 +12,7 @@ interface ActionButtonsProps {
   onStartRender: () => void;
   isPreparing: boolean;
   hasAlignment: boolean;
+  hasAudio: boolean;
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
@@ -24,7 +25,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   renderSpeed,
   onStartRender,
   isPreparing,
-  hasAlignment
+  hasAlignment,
+  hasAudio
 }) => {
   return (
     <div className="space-y-2">
@@ -55,11 +57,11 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
       </div>
       <button
         onClick={onStartRender}
-        disabled={isPreparing || !hasAlignment || isRendering}
+        disabled={isPreparing || !hasAlignment || !hasAudio || isRendering}
         className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all flex items-center justify-center gap-2
         ${isRendering 
             ? 'bg-purple-800 text-white cursor-wait' 
-            : !hasAlignment 
+            : (!hasAlignment || !hasAudio)
                 ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
                 : 'bg-purple-600 hover:bg-purple-500 text-white'
         }`}
@@ -83,7 +85,12 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               <div className="bg-purple-500 h-full transition-all duration-300" style={{ width: `${renderProgress}%` }}></div>
           </div>
       )}
-      {!isRendering && (
+      {!hasAudio && !isRendering && (
+          <p className="text-xs text-center text-red-400 font-medium">
+              Please upload the audio file for this track above. (Suno CDN mp3s are no longer publicly accessible)
+          </p>
+      )}
+      {hasAudio && !isRendering && (
           <p className="text-xs text-center text-slate-400">
               Renders at ~10x speed. <br/>
               <span className="text-purple-400">Tip:</span> Use Chrome/Edge for direct-to-disk streaming (Low RAM mode).

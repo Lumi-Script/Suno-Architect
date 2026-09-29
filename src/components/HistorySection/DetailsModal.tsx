@@ -489,25 +489,10 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ clip, onClose, onUpdateClip
 
             {/* Modal Footer */}
             <div className="p-4 border-t border-slate-800 bg-slate-900/50 flex justify-end gap-3">
-                    {!isDraft && (
-                        <>
-                            <a 
-                            href={`https://cdn1.suno.ai/${clip.id}.mp3`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2"
-                            title="Download MP3"
-                            >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <polyline points="7 10 12 15 17 10" />
-                                <line x1="12" y1="15" x2="12" y2="3" />
-                            </svg>
-                            MP3
-                            </a>
-
-                            <a 
-                            href={`https://suno.com/song/${clip.id}`}
+                        {!isDraft && (
+                            <>
+                                <a 
+                                href={`https://suno.com/song/${clip.id}`}
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-purple-900/20"

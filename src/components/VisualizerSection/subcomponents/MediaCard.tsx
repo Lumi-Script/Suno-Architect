@@ -158,7 +158,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
 
               {/* Audio File Upload */}
               <div>
-                  <label className="text-xs text-slate-500 block mb-1">Audio Source (Override)</label>
+                  <label className="text-xs text-slate-500 block mb-1">Audio Source (Required)</label>
                   {customAudio ? (
                       <div className="flex items-center justify-between bg-slate-900 border border-green-500/30 rounded p-2">
                           <div className="flex items-center gap-2 overflow-hidden">
@@ -174,19 +174,19 @@ const MediaCard: React.FC<MediaCardProps> = ({
                           </button>
                       </div>
                   ) : (
-                    <label className="flex items-center justify-center w-full px-2 py-2 border border-dashed border-slate-600 rounded cursor-pointer hover:bg-slate-800 transition-colors group bg-slate-900/50">
+                    <label className="flex items-center justify-center w-full px-2 py-2 border border-dashed border-red-600/50 rounded cursor-pointer hover:bg-slate-800 transition-colors group bg-slate-900/50">
                         <input 
                             type="file" 
                             accept="audio/*" 
                             className="hidden" 
                             onChange={onAudioUpload}
                         />
-                        <div className="flex items-center gap-2 text-slate-400 group-hover:text-white">
+                        <div className="flex items-center gap-2 text-red-400 group-hover:text-red-300">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                                 <path d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4z" />
                                 <path d="M5.5 9.643a.75.75 0 00-1.5 0V10c0 3.06 2.29 5.585 5.25 5.954V17.5h-1.5a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5h-1.5v-1.546A6.001 6.001 0 0016 10v-.357a.75.75 0 00-1.5 0V10a4.5 4.5 0 01-9 0v-.357z" />
                             </svg>
-                            <span className="text-xs">Upload Mastered File</span>
+                            <span className="text-xs font-bold">Upload Track Audio</span>
                         </div>
                     </label>
                   )}
