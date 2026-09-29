@@ -6,6 +6,8 @@ interface MetadataCardProps {
   onApplyLyrics: () => void;
   applyStatus: 'idle' | 'applied';
   hasAlignment: boolean;
+  useV3Lyrics: boolean;
+  setUseV3Lyrics: (val: boolean) => void;
 }
 
 const MetadataCard: React.FC<MetadataCardProps> = ({ 
@@ -13,7 +15,9 @@ const MetadataCard: React.FC<MetadataCardProps> = ({
   setLyricSource, 
   onApplyLyrics, 
   applyStatus, 
-  hasAlignment 
+  hasAlignment,
+  useV3Lyrics,
+  setUseV3Lyrics
 }) => {
   return (
     <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-lg">
@@ -38,6 +42,20 @@ const MetadataCard: React.FC<MetadataCardProps> = ({
               className="w-full h-40 bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-300 placeholder-slate-600 focus:ring-1 focus:ring-purple-500 outline-none custom-scrollbar resize-none leading-relaxed"
               placeholder="Paste lyrics here. Use newlines to determine how lines are grouped in the visualizer."
             />
+            
+            <div className="mt-3 px-1 flex items-start gap-2">
+                <input 
+                    type="checkbox" 
+                    id="use-v3-lyrics" 
+                    checked={useV3Lyrics}
+                    onChange={(e) => setUseV3Lyrics(e.target.checked)}
+                    className="mt-0.5"
+                />
+                <label htmlFor="use-v3-lyrics" className="text-xs text-slate-400 cursor-pointer select-none">
+                    Use <span className="font-mono text-slate-300 bg-slate-800 px-1 rounded">/v3</span> lyrics (Provides better alignment but requires polling and takes longer).
+                </label>
+            </div>
+            
             <p className="text-[10px] text-slate-500 mt-2 px-1">
               <strong>Tip:</strong> This text determines line breaks. Aligning is fuzzy; edit text to fix grouping issues.
             </p>

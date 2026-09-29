@@ -329,16 +329,24 @@ export const drawScrollingLyrics = (
         const lineHeight = fontSize * 1.3;
         const maxW = width * 0.85;
 
-        const wordsWithWidths = line.map(w => ({
-            ...w,
-            width: ctx.measureText(w.word + " ").width
-        }));
+        const wordsWithLayout = line.map((w, idx) => {
+            let renderText = w.word;
+            if (idx === 0) {
+                renderText = renderText.trimStart();
+            }
+            return {
+                ...w,
+                renderText,
+                hasSpace: false,
+                width: ctx.measureText(renderText).width
+            };
+        });
 
-        const rows: { words: typeof wordsWithWidths, width: number }[] = [];
-        let currentRow: typeof wordsWithWidths = [];
+        const rows: { words: typeof wordsWithLayout, width: number }[] = [];
+        let currentRow: typeof wordsWithLayout = [];
         let currentWidth = 0;
 
-        wordsWithWidths.forEach(w => {
+        wordsWithLayout.forEach(w => {
             if (currentWidth + w.width > maxW && currentRow.length > 0) {
                 rows.push({ words: currentRow, width: currentWidth });
                 currentRow = [w];
@@ -449,7 +457,7 @@ export const drawScrollingLyrics = (
                 }
 
                 ctx.textAlign = 'left';
-                ctx.fillText(w.word, currentX, rowY);
+                ctx.fillText(w.renderText, currentX, rowY);
                 currentX += w.width;
             });
         });

@@ -23,7 +23,7 @@ export const useVisualizer = (
     const [visualMode, setVisualMode] = useState<'cover' | 'qt6'>('cover');
     const [customBg, setCustomBg] = useState<{ url: string, type: 'image' | 'video', name: string } | null>(null);
     const [customAudio, setCustomAudio] = useState<{ url: string, name: string } | null>(null);
-    const [audioBitrate, setAudioBitrate] = useState(320000);
+    const [audioBitrate, setAudioBitrate] = useState(0);
     const [videoBitrate, setVideoBitrate] = useState(5000000);
     const [videoBitrateMode, setVideoBitrateMode] = useState<'constant' | 'variable'>('variable');
     const [imgSrc, setImgSrc] = useState<string>('');
@@ -70,12 +70,12 @@ export const useVisualizer = (
     const [qt6BarCount, setQt6BarCount] = useState(64);
     const [qt6Sensitivity, setQt6Sensitivity] = useState(1.0);
 
-    // Data State
     const [clipData, setClipData] = useState<SunoClip | null>(null);
     const [alignment, setAlignment] = useState<AlignedWord[] | null>(null);
     const [lines, setLines] = useState<AlignedWord[][]>([]);
     const [lyricSource, setLyricSource] = useState(''); 
     const [applyStatus, setApplyStatus] = useState<'idle' | 'applied'>('idle');
+    const [useV3Lyrics, setUseV3Lyrics] = useState(false);
     
     // Audio/Canvas/Media References
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -101,6 +101,8 @@ export const useVisualizer = (
     const [progress, setProgress] = useState(0); 
     const [duration, setDuration] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    
+    const v3LoadedRef = useRef<Record<string, boolean>>({});
 
     const renderStartTimeRef = useRef(0);
     const lastSpeedUpdateRef = useRef(0);
@@ -207,14 +209,24 @@ export const useVisualizer = (
             setLyricSource(sourceText);
 
             let align = currentClip.alignmentData;
-            if (!align && sunoCookie && !currentClip.id.startsWith('draft_')) {
+            let alignLyrics = currentClip.alignedLyrics;
+            
+            const needsV3 = useV3Lyrics && !v3LoadedRef.current[currentClip.id];
+
+            // Always fetch if we need v3 or if we lack alignmentData
+            if ((!align || needsV3) && sunoCookie && !currentClip.id.startsWith('draft_')) {
                 try {
                     setIsPreparing(true);
-                    const res = await getLyricAlignment(currentClip.id, sunoCookie);
-                    if (res && res.aligned_words) {
-                        align = res.aligned_words;
+                    const res = await getLyricAlignment(currentClip.id, sunoCookie, useV3Lyrics);
+                    if (res) {
+                        if (useV3Lyrics) {
+                            v3LoadedRef.current[currentClip.id] = true;
+                        }
+                        if (res.aligned_words) align = res.aligned_words;
+                        if (res.alignment) align = res.alignment;
+                        if (res.aligned_lyrics) alignLyrics = res.aligned_lyrics;
                         if (history.some(h => h.id === currentClip.id)) {
-                            onUpdateClip(currentClip.id, { alignmentData: align });
+                            onUpdateClip(currentClip.id, { alignmentData: align, alignedLyrics: alignLyrics || [] });
                         }
                     }
                 } catch (e) {
@@ -237,7 +249,7 @@ export const useVisualizer = (
         };
 
         loadData();
-    }, [selectedClipId, history, sunoCookie, onUpdateClip]);
+    }, [selectedClipId, history, sunoCookie, onUpdateClip, useV3Lyrics]);
 
     const handleManualLoad = useCallback(() => {
         if (manualId.trim()) setSelectedClipId(manualId.trim());
@@ -502,7 +514,7 @@ export const useVisualizer = (
             selectedClipId, manualId, aspectRatio, visualMode, customBg, customAudio,
             audioBitrate, videoBitrate, videoBitrateMode, imgSrc, activeColor, inactiveColor, inactiveOpacity, fontFamily,
             smoothingFactor, verticalOffset, qt6Style, qt6BarCount, qt6Sensitivity,
-            clipData, alignment, lines, lyricSource, applyStatus,
+            clipData, alignment, lines, lyricSource, applyStatus, useV3Lyrics,
             isRendering, renderProgress, renderSpeed, isPreparing, isGrouping, progress, duration, isPlaying,
             colorEvents
         },
@@ -510,7 +522,7 @@ export const useVisualizer = (
             setSelectedClipId, setManualId, setAspectRatio, setVisualMode, setCustomBg, setCustomAudio,
             setAudioBitrate, setVideoBitrate, setVideoBitrateMode, setImgSrc, setActiveColor, setInactiveColor, setInactiveOpacity, setFontFamily,
             setSmoothingFactor, setVerticalOffset, setQt6Style, setQt6BarCount, setQt6Sensitivity,
-            setLyricSource, setIsPlaying,
+            setLyricSource, setIsPlaying, setUseV3Lyrics,
             addColorEvent, removeColorEvent, updateColorEvent
         },
         refs: {

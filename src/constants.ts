@@ -940,6 +940,7 @@ export const ASPECT_RATIOS = {
 };
 
 export const AUDIO_BITRATES = [
+    { label: "Match input", value: 0 },
     { label: "128 kbps (Standard)", value: 128000 },
     { label: "192 kbps (High)", value: 192000 },
     { label: "Max (pcm)", value: 1000000 },

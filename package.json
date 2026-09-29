@@ -14,7 +14,8 @@
     "jszip": "^3.10.1",
     "mediabunny": "^1.50.6",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "string-similarity": "^4.0.4"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",

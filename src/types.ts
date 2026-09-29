@@ -43,6 +43,7 @@ export interface SunoClip {
   };
   originalData?: ParsedSunoOutput;
   alignmentData?: AlignedWord[];
+  alignedLyrics?: AlignedLyricLine[];
   lrcContent?: string;
   srtContent?: string;
 }
@@ -55,8 +56,23 @@ export interface AlignedWord {
   p_align: number;
 }
 
+export interface AlignedLyricWord {
+  text: string;
+  start_s: number;
+  end_s: number;
+}
+
+export interface AlignedLyricLine {
+  text: string;
+  start_s: number;
+  end_s: number;
+  section?: string;
+  words: AlignedLyricWord[];
+}
+
 export interface LyricAlignmentResponse {
   aligned_words: AlignedWord[];
+  aligned_lyrics?: AlignedLyricLine[];
 }
 
 export interface SunoLibrary {

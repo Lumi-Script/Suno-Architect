@@ -49,6 +49,8 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({ history, sunoCook
                         onApplyLyrics={handlers.handleApplyLyrics}
                         applyStatus={state.applyStatus}
                         hasAlignment={!!state.alignment}
+                        useV3Lyrics={state.useV3Lyrics}
+                        setUseV3Lyrics={setters.setUseV3Lyrics}
                      />
 
                      <MediaCard 

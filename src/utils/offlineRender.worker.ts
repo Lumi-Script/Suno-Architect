@@ -81,7 +81,7 @@ self.onmessage = async (e) => {
             });
             output.addVideoTrack(videoSource, { frameRate: fps });
 
-            const useFlac = (config.bitrate || 0) > 192000;
+            const useFlac = (config.bitrate || 0) >= 1000000;
             audioSource = new AudioBufferSource({
                 codec: useFlac ? 'pcm-s16' : 'aac',
                 ...(!useFlac && { bitrate: config.bitrate || 128000 })

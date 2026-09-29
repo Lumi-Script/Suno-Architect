@@ -1,31 +1,84 @@
 import { AlignedWord } from '../types';
 import { Type, GoogleGenAI } from "@google/genai";
 
-export const STOP_WORDS = new Set(['the', 'and', 'a', 'to', 'of', 'in', 'it', 'is', 'that', 'you', 'he', 'she', 'was', 'for', 'on', 'are', 'as', 'with', 'his', 'they', 'at', 'be', 'this', 'have', 'from', 'or', 'one', 'had', 'by', 'word', 'but', 'not', 'what', 'all', 'were', 'we', 'when', 'your', 'can', 'said', 'there', 'use', 'an', 'each', 'which', 'she', 'do', 'how', 'their', 'if', 'will', 'up', 'other', 'about', 'out', 'many', 'then', 'them', 'these', 'so', 'some', 'her', 'would', 'make', 'like', 'him', 'into', 'time', 'has', 'look', 'two', 'more', 'write', 'go', 'see', 'number', 'no', 'way', 'could', 'people', 'my', 'than', 'first', 'water', 'been', 'call', 'who', 'oil', 'its', 'now', 'find']);
-
 export const stripMetaTags = (text: string): string => {
     if (!text) return "";
-    // Regex to match [ ... ] and { ... } including newlines
     return text
         .replace(/\[[^\]]*\]/g, "")
         .replace(/\{[^}]*\}/g, "")
-        .replace(/\n{3,}/g, "\n\n") // Normalize excessive newlines
+        .replace(/\n{3,}/g, "\n\n")
         .trim();
 };
 
+export const cleanStringForMatch = (s: string) => {
+    if (!s) return "";
+    return s.toLowerCase().replace(/['".,/#!$%^&*;:{}=\-_`~()\[\]]/g, "").trim();
+};
+
+export const splitMergedAlignedWords = (words: AlignedWord[]): AlignedWord[] => {
+    const result: AlignedWord[] = [];
+    for (const w of words) {
+        const parts = w.word.split(/(\n+)/);
+        
+        if (parts.length === 1) {
+            result.push(w);
+            continue;
+        }
+        
+        const splitWords: string[] = [];
+        let current = "";
+        for (let i = 0; i < parts.length; i++) {
+            if (i % 2 === 0) {
+                 if (current) splitWords.push(current);
+                 current = parts[i];
+            } else {
+                 current += parts[i];
+                 splitWords.push(current);
+                 current = "";
+            }
+        }
+        if (current) splitWords.push(current);
+        
+        const finalWords = splitWords.filter(s => s.length > 0);
+        
+        if (finalWords.length === 1) {
+             result.push({ ...w, word: finalWords[0] });
+             continue;
+        }
+
+        const totalLen = finalWords.reduce((sum, s) => sum + s.length, 0);
+        const duration = w.end_s - w.start_s;
+        let currentStart = w.start_s;
+        
+        for (const fw of finalWords) {
+             const fwDuration = (fw.length / totalLen) * duration;
+             result.push({
+                  ...w,
+                  word: fw,
+                  start_s: currentStart,
+                  end_s: currentStart + fwDuration
+             });
+             currentStart += fwDuration;
+        }
+    }
+    return result;
+};
+
 export const getCleanAlignedWords = (aligned: AlignedWord[]): AlignedWord[] => {
-    // 1. Stateful Strip of Square Brackets [] and Curly Braces {}
+    const splitAligned = splitMergedAlignedWords(aligned);
+    
     const stripped: AlignedWord[] = [];
     let inSquare = false;
     let inCurly = false;
 
-    for (const w of aligned) {
+    for (const w of splitAligned) {
         let cleanedWord = "";
         for (const char of w.word) {
             if (char === '[') { inSquare = true; continue; }
             if (char === ']') { inSquare = false; continue; }
             if (char === '{') { inCurly = true; continue; }
             if (char === '}') { inCurly = false; continue; }
+            if (char === '\n') { inSquare = false; inCurly = false; } // Safety reset
 
             if (!inSquare && !inCurly) {
                 cleanedWord += char;
@@ -34,68 +87,18 @@ export const getCleanAlignedWords = (aligned: AlignedWord[]): AlignedWord[] => {
         
         const trimmed = cleanedWord.trim();
         if (trimmed.length > 0) {
-            // Check for trailing opener (e.g. "days (") and split it
-            const splitMatch = trimmed.match(/^(.*?)(\s*)([\(\"\'\u201C\u2018\u00AB\<]+)$/);
-            if (splitMatch && splitMatch[1].trim().length > 0) {
-                const wordPart = splitMatch[1].trim();
-                const spacePart = splitMatch[2];
-                const openerPart = splitMatch[3];
-                
-                // Only split if there is space OR if the opener is unambiguous (brackets)
-                // We treat quotes as ambiguous - they stick to the word if no space (e.g. end")
-                const isAmbiguous = /^[\"\'\u201C\u2018]+$/.test(openerPart);
-                
-                if (isAmbiguous && spacePart.length === 0) {
-                     stripped.push({ ...w, word: trimmed });
-                } else {
-                    // Split duration: give most to word, last 0.1s to opener
-                    const splitTime = Math.max(w.start_s, w.end_s - 0.1);
-                    
-                    stripped.push({ ...w, word: wordPart, end_s: splitTime });
-                    stripped.push({ ...w, word: openerPart, start_s: splitTime });
-                }
-            } else {
-                stripped.push({ ...w, word: trimmed });
-            }
+            stripped.push({ ...w, word: cleanedWord.replace(/[\n\r]/g, '') });
         }
     }
-
-    if (stripped.length === 0) return [];
-
-    // 2. Smart Merge of Punctuation & Split Contractions
-    const merged: AlignedWord[] = [];
     
-    const isOpener = (s: string) => /^[\(\"\'\u201C\u2018\u00AB\<]+$/.test(s); 
-    const isCloser = (s: string) => /^[\)\"\'\u201D\u2019\u00BB\>\,\.\!\?\:\;]+$/.test(s);
-    const isSuffix = (s: string) => /^['’][a-z]+$/i.test(s);
-    const isContractionPart = (s: string) => /^(s|m|t|re|ve|ll|d)$/i.test(s);
-
+    // Quick merge for punctuation
+    const merged: AlignedWord[] = [];
+    const isCloser = (s: string) => /^[\)\"\'\u201D\u2019\u00BB\>\,\.\!\?\:\;]+$/.test(s.trim());
     for (let i = 0; i < stripped.length; i++) {
-        let current = { ...stripped[i] };
-        
-        // A. Forward Merge (Openers)
-        if (isOpener(current.word) && i + 1 < stripped.length) {
-            const next = stripped[i+1];
-            // Increased threshold to 5.0s to ensure brackets always join the next word
-            if (next.start_s - current.end_s < 5.0) {
-                stripped[i+1] = {
-                    ...next,
-                    word: current.word + next.word,
-                    start_s: current.start_s
-                };
-                continue;
-            }
-        }
-
-        // B. Backward Merge (Closers & Suffixes & Split Contractions)
+        const current = { ...stripped[i] };
         if (merged.length > 0) {
             const prev = merged[merged.length - 1];
-            const timeGap = current.start_s - prev.end_s;
-            
-            const standardMerge = (isCloser(current.word) || isSuffix(current.word));
-            const splitContractionMerge = /['’]$/.test(prev.word) && isContractionPart(current.word);
-
-            if ((standardMerge || splitContractionMerge) && timeGap < 1.5) {
+            if (isCloser(current.word) && current.start_s - prev.end_s < 1.0) {
                 merged[merged.length - 1] = {
                     ...prev,
                     word: prev.word + current.word,
@@ -104,20 +107,10 @@ export const getCleanAlignedWords = (aligned: AlignedWord[]): AlignedWord[] => {
                 continue;
             }
         }
-
         merged.push(current);
     }
 
     return merged;
-};
-
-export const cleanStringForMatch = (s: string) => {
-    if (!s) return "";
-    try {
-        return s.toLowerCase().replace(/['’]/g, '').replace(/[^\p{L}\p{N}]/gu, '');
-    } catch (e) {
-        return s.toLowerCase().replace(/['".,/#!$%^&*;:{}=\-_`~()]/g, "");
-    }
 };
 
 export const groupWordsByTiming = (aligned: AlignedWord[]): AlignedWord[][] => {
@@ -149,136 +142,120 @@ export const groupWordsByTiming = (aligned: AlignedWord[]): AlignedWord[][] => {
 export const matchWordsToPrompt = (aligned: AlignedWord[], promptText: string): AlignedWord[][] => {
     const cleanAligned = getCleanAlignedWords(aligned);
     if (cleanAligned.length === 0) return [];
-    const promptLines = stripMetaTags(promptText).split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    if (promptLines.length === 0) return groupWordsByTiming(cleanAligned);
     
-    type PromptToken = { text: string; lineIndex: number; isLineStart: boolean };
-    const tokens: PromptToken[] = [];
-    promptLines.forEach((line, idx) => {
-        const words = line.split(/\s+/).map(cleanStringForMatch).filter(w => w.length > 0);
-        words.forEach((w, wIdx) => tokens.push({ text: w, lineIndex: idx, isLineStart: wIdx === 0 }));
+    const promptLines = stripMetaTags(promptText).split('\n').map(l => l.trim());
+    
+    const tokens: { text: string; clean: string; lineIndex: number }[] = [];
+    promptLines.forEach((line, lineIndex) => {
+        if (!line) return;
+        const words = line.split(/\s+/);
+        words.forEach(w => {
+            const clean = cleanStringForMatch(w);
+            if (clean) {
+                tokens.push({ text: w, clean, lineIndex });
+            }
+        });
     });
+
+    if (tokens.length === 0) {
+        return groupWordsByTiming(cleanAligned);
+    }
+
+    const audioTokens = cleanAligned.map(w => ({
+        obj: w,
+        clean: cleanStringForMatch(w.word)
+    }));
+
+    const N = audioTokens.length;
+    const M = tokens.length;
     
-    const groups: AlignedWord[][] = [];
-    let currentGroup: AlignedWord[] = [];
-    let currentLineIndex = 0;
-    let tokenPtr = 0;
-    let wordsSinceLastMatch = 0; 
+    const dp: number[][] = Array.from({ length: N + 1 }, () => new Array(M + 1).fill(0));
+    const backtrack: number[][] = Array.from({ length: N + 1 }, () => new Array(M + 1).fill(0));
     
-    for (let i = 0; i < cleanAligned.length; i++) {
-        const wordObj = cleanAligned[i];
-        const cleanWord = cleanStringForMatch(wordObj.word);
-        
-        if (!cleanWord) { 
-            // Punctuation Handling with Lookahead
-            // Check if this punctuation likely belongs to the NEXT line (e.g. leading quote)
-            const isAmbiguousOpener = /^['"“‘\(\[\{<]/.test(wordObj.word);
+    for (let i = 1; i <= N; i++) { dp[i][0] = i * 2; backtrack[i][0] = 2; }
+    for (let j = 1; j <= M; j++) { dp[0][j] = j * 2; backtrack[0][j] = 3; }
+    
+    for (let i = 1; i <= N; i++) {
+        for (let j = 1; j <= M; j++) {
+            const aClean = audioTokens[i - 1].clean;
+            const pClean = tokens[j - 1].clean;
             
-            if (isAmbiguousOpener && i + 1 < cleanAligned.length) {
-                const nextObj = cleanAligned[i+1];
-                const nextClean = cleanStringForMatch(nextObj.word);
-                
-                if (nextClean) {
-                     // Lookahead search to see if next word triggers a line break
-                     let nextLineIndex = -1;
-                     const searchLimit = 20; 
-                     for (let la = 0; la < searchLimit; la++) {
-                         if (tokenPtr + la >= tokens.length) break;
-                         const t = tokens[tokenPtr + la];
-                         if (t.text === nextClean) {
-                             nextLineIndex = t.lineIndex;
-                             break;
-                         }
-                     }
-                     
-                     if (nextLineIndex > currentLineIndex) {
-                         // Force switch for openers if next word is on a new line
-                         if (currentGroup.length > 0) groups.push(currentGroup);
-                         currentGroup = [];
-                         currentLineIndex = nextLineIndex;
-                     }
-                }
+            let matchCost = 3; 
+            if (aClean === pClean) {
+                matchCost = 0; 
+            } else if (aClean.includes(pClean) || pClean.includes(aClean)) {
+                matchCost = 1; 
             }
-
-            currentGroup.push(wordObj); 
-            continue; 
-        }
-
-        let bestMatchOffset = -1;
-        const isLost = wordsSinceLastMatch > 3; 
-        const searchLimit = isLost ? 500 : 50; 
-
-        for (let lookahead = 0; lookahead < searchLimit; lookahead++) {
-            if (tokenPtr + lookahead >= tokens.length) break;
-            const target = tokens[tokenPtr + lookahead];
             
-            const isExact = target.text === cleanWord;
-            const isSub = !isExact && (target.text.includes(cleanWord) || cleanWord.includes(target.text));
-            const isMatch = isExact || (isLost && isSub);
-
-            if (isMatch) {
-                let contextScore = 0;
-                
-                if (i + 1 < cleanAligned.length) {
-                    const nextAudio = cleanStringForMatch(cleanAligned[i+1].word);
-                    if (tokenPtr + lookahead + 1 < tokens.length) {
-                        const nextToken = tokens[tokenPtr + lookahead + 1].text;
-                        if (nextToken === nextAudio) contextScore += 2;
-                        else if (nextAudio && nextToken.includes(nextAudio)) contextScore += 1;
-                    }
-                    if (i + 2 < cleanAligned.length && tokenPtr + lookahead + 2 < tokens.length) {
-                         const nextNextAudio = cleanStringForMatch(cleanAligned[i+2].word);
-                         const nextNextToken = tokens[tokenPtr + lookahead + 2].text;
-                         if (nextNextAudio === nextNextToken) contextScore += 1;
-                    }
-                }
-
-                const isStrongMatch = (isExact && lookahead === 0) || contextScore > 0;
-                
-                if (target.isLineStart && (isStrongMatch || (isExact && !STOP_WORDS.has(cleanWord)))) {
-                    bestMatchOffset = lookahead;
-                    break;
-                }
-
-                if (isStrongMatch) {
-                    bestMatchOffset = lookahead;
-                    break;
-                }
-                
-                if (isLost && isExact && !STOP_WORDS.has(cleanWord)) {
-                     if (bestMatchOffset === -1) bestMatchOffset = lookahead;
-                }
+            const costDiag = dp[i - 1][j - 1] + matchCost;
+            const costUp = dp[i - 1][j] + 2; 
+            const costLeft = dp[i][j - 1] + 2; 
+            
+            let min = costDiag;
+            let dir = 1;
+            
+            if (costUp < min) {
+                min = costUp;
+                dir = 2;
             }
-        }
-
-        if (bestMatchOffset !== -1) {
-            const target = tokens[tokenPtr + bestMatchOffset];
-            
-            if (target.lineIndex > currentLineIndex) {
-                if (currentGroup.length > 0) groups.push(currentGroup);
-                currentGroup = [];
-                currentLineIndex = target.lineIndex;
-            } 
-
-            tokenPtr += bestMatchOffset + 1;
-            wordsSinceLastMatch = 0; 
-        } else {
-            wordsSinceLastMatch++;
-            
-            if (currentGroup.length > 0) {
-                const prev = currentGroup[currentGroup.length - 1];
-                if (wordObj.start_s - prev.end_s > 2.0) { 
-                     groups.push(currentGroup);
-                     currentGroup = [];
-                }
+            if (costLeft < min) {
+                min = costLeft;
+                dir = 3;
             }
+            
+            dp[i][j] = min;
+            backtrack[i][j] = dir;
         }
-        
-        currentGroup.push(wordObj);
     }
     
-    if (currentGroup.length > 0) groups.push(currentGroup);
-    return groups;
+    let i = N;
+    let j = M;
+    const assignment: number[] = new Array(N).fill(-1);
+    
+    while (i > 0 && j > 0) {
+        const dir = backtrack[i][j];
+        if (dir === 1) {
+            assignment[i - 1] = tokens[j - 1].lineIndex;
+            i--; j--;
+        } else if (dir === 2) {
+            assignment[i - 1] = j < M ? tokens[j].lineIndex : (j > 0 ? tokens[j - 1].lineIndex : -1);
+            i--;
+        } else {
+            j--;
+        }
+    }
+    while (i > 0) {
+        assignment[i - 1] = j < M ? tokens[j].lineIndex : (j > 0 ? tokens[j - 1].lineIndex : 0);
+        i--;
+    }
+    
+    const lines: AlignedWord[][] = [];
+    let currentLine: AlignedWord[] = [];
+    let currentLineIdx = -1;
+    
+    for (let k = 0; k < N; k++) {
+        let assignedLine = assignment[k];
+        if (assignedLine === -1) {
+             assignedLine = currentLineIdx === -1 ? 0 : currentLineIdx;
+        }
+        
+        if (assignedLine !== currentLineIdx) {
+            if (currentLine.length > 0) {
+                lines.push(currentLine);
+                currentLine = [];
+            }
+            currentLineIdx = assignedLine;
+            while (lines.length < currentLineIdx) {
+                 lines.push([]);
+            }
+        }
+        currentLine.push(audioTokens[k].obj);
+    }
+    if (currentLine.length > 0) {
+        lines.push(currentLine);
+    }
+    
+    return lines;
 };
 
 export const groupLyricsByLines = async (
@@ -339,8 +316,6 @@ export const groupLyricsByLines = async (
     return fallback || [];
   }
 };
-
-// --- FILE GENERATION UTILS ---
 
 export const formatLrcTimestamp = (seconds: number) => {
     const date = new Date(0);

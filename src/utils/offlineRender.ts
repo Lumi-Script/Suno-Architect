@@ -97,11 +97,18 @@ export const performOfflineRender = async (
                 channelData.push(decodedBuffer.getChannelData(i));
             }
 
-            const { customVideo, ...workerConfig } = config;
+            let actualAudioBitrate = config.bitrate;
+            if (actualAudioBitrate === 0) {
+                // (Bytes * 8) / seconds = bits per second
+                actualAudioBitrate = Math.round((arrayBuffer.byteLength * 8) / decodedBuffer.duration);
+                console.log(`Matched input audio bitrate: ${actualAudioBitrate} bps`);
+            }
+
+            const { customVideo, bitrate, ...workerConfig } = config;
 
             worker.postMessage({
                 type: 'INIT',
-                config: workerConfig, 
+                config: { ...workerConfig, bitrate: actualAudioBitrate }, 
                 fps,
                 fileHandle, 
                 audioData: {

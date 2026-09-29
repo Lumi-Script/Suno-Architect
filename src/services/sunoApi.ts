@@ -88,10 +88,11 @@ export const getSunoFeed = async (
     }
 };
 
-export const getLyricAlignment = async (songId: string, cookie: string): Promise<LyricAlignmentResponse> => {
+export const getLyricAlignment = async (songId: string, cookie: string, useV3: boolean = false): Promise<any> => {
     if (!cookie) throw new Error("No cookie provided");
 
-    const ENDPOINT = `/api/gen/${songId}/aligned_lyrics/v2`;
+    const version = useV3 ? 'v3' : 'v2';
+    const ENDPOINT = `/api/gen/${songId}/aligned_lyrics/${version}`;
 
     try {
         const headers: Record<string, string> = {
@@ -101,19 +102,36 @@ export const getLyricAlignment = async (songId: string, cookie: string): Promise
         const trimmedCookie = cookie.trim();
         headers["Authorization"] = `Bearer ${trimmedCookie}`;
 
-        const response = await fetch(ENDPOINT, {
-            method: "GET",
-            headers: headers
-        });
+        const fetchOnce = async () => {
+            const response = await fetch(ENDPOINT, {
+                method: "GET",
+                headers: headers
+            });
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch alignment. Status: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch alignment. Status: ${response.status}`);
+            }
+
+            return await response.json();
+        };
+
+        if (useV3) {
+            let data = await fetchOnce();
+            let retries = 0;
+            while (data.state !== "complete" && retries < 60) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                data = await fetchOnce();
+                retries++;
+            }
+            if (data.state !== "complete") {
+                throw new Error("Polling timed out for v3 lyrics");
+            }
+            return data;
+        } else {
+            return await fetchOnce();
         }
-
-        const data = await response.json();
-        return data; // Expected to match LyricAlignmentResponse structure
     } catch (error) {
-        console.error("Failed to get lyric alignment:", error);
+        console.error(`Failed to get lyric alignment (${version}):`, error);
         throw error;
     }
 };
