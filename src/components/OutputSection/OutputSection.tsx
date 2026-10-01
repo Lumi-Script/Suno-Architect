@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ParsedSunoOutput, PromptSettings } from '../../types';
-import { triggerSunoGeneration } from '../../services/sunoGenApi';
+import { triggerSunoGeneration, createSunoPlaylist, updateSunoPlaylistClips } from '../../services/sunoGenApi';
 import EditSongModal from '../HistorySection/EditSongModal';
 import AlbumHeader from './AlbumHeader';
 import TrackCard from './TrackCard';
@@ -17,9 +17,10 @@ interface OutputSectionProps {
 
 const OutputSection: React.FC<OutputSectionProps> = ({ results, sunoCookie, sunoModel, promptSettings, onSyncSuccess, onUpdateTrack }) => {
   const [syncAllLoading, setSyncAllLoading] = useState(false);
-  const [syncStatuses, setSyncStatuses] = useState<Record<number, {loading: boolean, error?: string, success?: boolean}>>({});
+  const [syncStatuses, setSyncStatuses] = useState<Record<number, {loading: boolean, error?: string, success?: boolean, clipIds?: string[]}>>({});
   const [cleanLyricsToggles, setCleanLyricsToggles] = useState<Record<number, boolean>>({});
   const [masterCleanLyrics, setMasterCleanLyrics] = useState(true);
+  const [createPlaylist, setCreatePlaylist] = useState(false);
   
   // Editing State
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -57,7 +58,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({ results, sunoCookie, suno
   };
 
   const handleSyncTrack = async (data: ParsedSunoOutput, index: number) => {
-    if (!sunoCookie) return;
+    if (!sunoCookie) return null;
     
     setSyncStatuses(prev => ({ ...prev, [index]: { loading: true } }));
     const shouldClean = cleanLyricsToggles[index] !== false;
@@ -70,8 +71,10 @@ const OutputSection: React.FC<OutputSectionProps> = ({ results, sunoCookie, suno
         if (onSyncSuccess) {
             onSyncSuccess(result, data, shouldClean);
         }
+        return result;
     } catch (err: any) {
         setSyncStatuses(prev => ({ ...prev, [index]: { loading: false, error: err.message || "Failed" } }));
+        return null;
     }
   };
 
@@ -79,11 +82,68 @@ const OutputSection: React.FC<OutputSectionProps> = ({ results, sunoCookie, suno
     if (!sunoCookie || results.length === 0) return;
     setSyncAllLoading(true);
     
+    let playlistV1Id: string | null = null;
+    let playlistV2Id: string | null = null;
+
+    if (createPlaylist) {
+        const title1 = results[0]?.title || "Album";
+        const v1 = await createSunoPlaylist(`${title1} v1`, sunoCookie);
+        const v2 = await createSunoPlaylist(`${title1} v2`, sunoCookie);
+        
+        // Handle various response formats from Suno API
+        playlistV1Id = v1?.id || v1?.playlist_id || v1?.playlist?.id || (typeof v1 === 'string' ? v1 : null);
+        playlistV2Id = v2?.id || v2?.playlist_id || v2?.playlist?.id || (typeof v2 === 'string' ? v2 : null);
+        
+        if (!playlistV1Id || !playlistV2Id) {
+            console.warn("Failed to extract playlist IDs", { v1, v2 });
+        }
+    }
+
     // Process sequentially to avoid heavy rate limiting or context mixing
     for (let i = 0; i < results.length; i++) {
         const track = results[i];
-        if (syncStatuses[i]?.success) continue;
-        await handleSyncTrack(track, i);
+        
+        // If already synced and we don't have clips to add, we can't add it.
+        // We will just skip, but if we need to force playlist add, user should refresh.
+        if (syncStatuses[i]?.success && !syncStatuses[i]?.clipIds) continue;
+        
+        let clipsToUse = syncStatuses[i]?.clipIds;
+        
+        if (!syncStatuses[i]?.success) {
+            const result = await handleSyncTrack(track, i);
+            let actualClips: any[] = [];
+            
+            if (result && Array.isArray(result.clips)) {
+                actualClips = result.clips;
+            } else if (Array.isArray(result)) {
+                actualClips = result;
+            } else if (result && result.id) {
+                actualClips = [result];
+            }
+            
+            if (actualClips && actualClips.length > 0) {
+                clipsToUse = actualClips.map((c: any) => c.id || c).filter(Boolean);
+                setSyncStatuses(prev => ({ 
+                    ...prev, 
+                    [i]: { ...prev[i], clipIds: clipsToUse } 
+                }));
+            } else {
+                console.warn("Could not find clips in generation result", result);
+            }
+        }
+        
+        // Add to playlists if applicable
+        if (clipsToUse && clipsToUse.length > 0 && createPlaylist) {
+            const clip1Id = clipsToUse[0];
+            const clip2Id = clipsToUse.length > 1 ? clipsToUse[1] : null;
+
+            if (playlistV1Id && clip1Id) {
+                await updateSunoPlaylistClips(playlistV1Id, [clip1Id], sunoCookie);
+            }
+            if (playlistV2Id && clip2Id) {
+                await updateSunoPlaylistClips(playlistV2Id, [clip2Id], sunoCookie);
+            }
+        }
     }
     
     setSyncAllLoading(false);
@@ -109,6 +169,8 @@ const OutputSection: React.FC<OutputSectionProps> = ({ results, sunoCookie, suno
             sunoCookie={sunoCookie} 
             cleanLyrics={masterCleanLyrics}
             onCleanLyricsChange={handleMasterToggleChange}
+            createPlaylist={createPlaylist}
+            onCreatePlaylistChange={setCreatePlaylist}
           />
       )}
 

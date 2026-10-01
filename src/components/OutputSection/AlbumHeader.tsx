@@ -8,6 +8,8 @@ interface AlbumHeaderProps {
   sunoCookie?: string;
   cleanLyrics: boolean;
   onCleanLyricsChange: (checked: boolean) => void;
+    createPlaylist: boolean;
+    onCreatePlaylistChange: (checked: boolean) => void;
 }
 
 const AlbumHeader: React.FC<AlbumHeaderProps> = ({ 
@@ -16,7 +18,9 @@ const AlbumHeader: React.FC<AlbumHeaderProps> = ({
     syncAllLoading, 
     sunoCookie,
     cleanLyrics,
-    onCleanLyricsChange
+    onCleanLyricsChange,
+    createPlaylist,
+    onCreatePlaylistChange
 }) => {
   return (
     <div className="sticky top-[80px] z-40 bg-slate-900/90 backdrop-blur-md border border-purple-500/30 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-center gap-4 shadow-2xl">
@@ -31,6 +35,16 @@ const AlbumHeader: React.FC<AlbumHeaderProps> = ({
         </div>
         
         <div className="flex items-center gap-4 w-full sm:w-auto">
+            <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300 hover:text-white transition-colors" title="Create Playlists V1 and V2 and add generated clips in order">
+                <input 
+                    type="checkbox" 
+                    className="w-4 h-4 rounded border-slate-600 text-purple-600 focus:ring-purple-600/50 bg-slate-800"
+                    checked={createPlaylist}
+                    onChange={(e) => onCreatePlaylistChange(e.target.checked)}
+                />
+                Add to Playlist
+            </label>
+
             <CleanLyricsToggle 
                 checked={cleanLyrics}
                 onChange={onCleanLyricsChange}
