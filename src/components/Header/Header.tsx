@@ -26,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [isAiStudio, setIsAiStudio] = useState(false);
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [manualKey, setManualKey] = useState('');
+  const [isVertexKey, setIsVertexKey] = useState(false);
   const [hasGoogleAuth, setHasGoogleAuth] = useState(false);
 
   // Custom Dropdown State for Suno
@@ -70,10 +71,12 @@ export const Header: React.FC<HeaderProps> = ({
       if (!isValid) {
         setIsAiStudio(false);
         const stored = localStorage.getItem('gemini_api_key');
+        const vertexStored = localStorage.getItem('is_vertex_key') === 'true';
         const googleAuth = localStorage.getItem('google_access_token');
         if (stored) {
             isValid = true;
             setManualKey(stored);
+            setIsVertexKey(vertexStored);
             keyToSet = stored;
         } else if (googleAuth) {
             isValid = true;
@@ -114,6 +117,7 @@ export const Header: React.FC<HeaderProps> = ({
     const trimmed = manualKey.trim();
     if (trimmed) {
         localStorage.setItem('gemini_api_key', trimmed);
+        localStorage.setItem('is_vertex_key', isVertexKey.toString());
         localStorage.removeItem('google_access_token');
         setHasGoogleAuth(false);
         setHasKey(true);
@@ -122,6 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
         onValidationChange(true);
     } else {
         localStorage.removeItem('gemini_api_key');
+        localStorage.removeItem('is_vertex_key');
         
         const hasEnv = !!process.env.API_KEY || !!localStorage.getItem('google_access_token');
         setHasKey(hasEnv);
@@ -155,35 +160,46 @@ export const Header: React.FC<HeaderProps> = ({
                 {!hasGoogleAuth && (
                     <>
                         <label className="block text-xs font-semibold text-slate-400 mb-2">Enter your Gemini API Key</label>
-                        <div className="flex gap-2 mb-3">
-                            <input 
-                                type="password" 
-                                value={manualKey}
-                                onChange={(e) => setManualKey(e.target.value)}
-                                placeholder="AIza..."
-                                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all placeholder-slate-600"
-                            />
-                            <button 
-                                onClick={saveManualKey}
-                                className="bg-purple-600 hover:bg-purple-500 text-white p-2 rounded-lg transition-colors flex items-center justify-center"
-                                title="Save Key"
-                            >
-                                {/* Check Icon */}
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                                    <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                            </button>
-                            <button 
-                                onClick={() => setShowKeyInput(false)}
-                                className="bg-slate-700 hover:bg-slate-600 text-slate-300 p-2 rounded-lg transition-colors flex items-center justify-center"
-                                title="Close"
-                            >
-                                {/* X Icon */}
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                                    <line x1="18" y1="6" x2="6" y2="18" />
-                                    <line x1="6" y1="6" x2="18" y2="18" />
-                                </svg>
-                            </button>
+                        <div className="flex flex-col gap-2 mb-3">
+                            <div className="flex gap-2">
+                                <input 
+                                    type="password" 
+                                    value={manualKey}
+                                    onChange={(e) => setManualKey(e.target.value)}
+                                    placeholder="AIza..."
+                                    className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all placeholder-slate-600"
+                                />
+                                <button 
+                                    onClick={saveManualKey}
+                                    className="bg-purple-600 hover:bg-purple-500 text-white p-2 rounded-lg transition-colors flex items-center justify-center"
+                                    title="Save Key"
+                                >
+                                    {/* Check Icon */}
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                </button>
+                                <button 
+                                    onClick={() => setShowKeyInput(false)}
+                                    className="bg-slate-700 hover:bg-slate-600 text-slate-300 p-2 rounded-lg transition-colors flex items-center justify-center"
+                                    title="Close"
+                                >
+                                    {/* X Icon */}
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <label className="flex items-center gap-2 text-xs text-slate-400 mt-1 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={isVertexKey}
+                                    onChange={(e) => setIsVertexKey(e.target.checked)}
+                                    className="rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-purple-500/50 cursor-pointer"
+                                />
+                                <span>This is a Vertex AI API Key</span>
+                            </label>
                         </div>
 
                         <div className="flex items-center mb-3">

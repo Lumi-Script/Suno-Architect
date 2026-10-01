@@ -268,7 +268,8 @@ export const groupLyricsByLines = async (
   const key = apiKey || process.env.API_KEY;
   if (!key) return fallback || [];
 
-  const ai = new GoogleGenAI({ apiKey: key });
+  const isVertex = localStorage.getItem('is_vertex_key') === 'true';
+  const ai = new GoogleGenAI({ apiKey: key, vertexai: isVertex });
 
   try {
     const response = await ai.models.generateContent({

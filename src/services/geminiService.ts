@@ -43,6 +43,7 @@ export const generateSunoPrompt = async (
 
   let ai;
   const originalFetch = window.fetch;
+  const isVertex = localStorage.getItem('is_vertex_key') === 'true';
 
   if (isOAuthToken) {
       window.fetch = async (url, init) => {
@@ -52,9 +53,9 @@ export const generateSunoPrompt = async (
          return originalFetch(url, { ...init, headers });
       };
       
-      ai = new GoogleGenAI({ apiKey: "OAUTH" });
+      ai = new GoogleGenAI({ apiKey: "OAUTH", vertexai: isVertex });
   } else {
-      ai = new GoogleGenAI({ apiKey: apiKey as string });
+      ai = new GoogleGenAI({ apiKey: apiKey as string, vertexai: isVertex });
   }
 
   if (!systemInstruction) {
@@ -113,7 +114,7 @@ export const generateSunoPrompt = async (
 
     const response = await withRetry(() => ai.models.generateContent({
       model: geminiModel,
-      contents: { parts },
+      contents: [{ role: 'user', parts }],
       config: {
         systemInstruction: finalSystemInstruction,
         temperature: 1.0,
@@ -233,6 +234,7 @@ export const suggestVisualizerSettings = async (
     const isOAuthToken = !apiKey && !!googleToken;
     let ai;
     const originalFetch = window.fetch;
+    const isVertex = localStorage.getItem('is_vertex_key') === 'true';
   
     if (isOAuthToken) {
         window.fetch = async (url, init) => {
@@ -241,9 +243,9 @@ export const suggestVisualizerSettings = async (
            headers.set('Authorization', `Bearer ${googleToken}`);
            return originalFetch(url, { ...init, headers });
         };
-        ai = new GoogleGenAI({ apiKey: "OAUTH" });
+        ai = new GoogleGenAI({ apiKey: "OAUTH", vertexai: isVertex });
     } else {
-        ai = new GoogleGenAI({ apiKey: apiKey as string });
+        ai = new GoogleGenAI({ apiKey: apiKey as string, vertexai: isVertex });
     }
   
     const prompt = `Analyze this image (if provided) and suggest a font, active color, and inactive color for a lyric visualizer overlay.
@@ -270,7 +272,7 @@ export const suggestVisualizerSettings = async (
   
         const response = await withRetry(() => ai.models.generateContent({
             model: geminiModel,
-            contents: { parts },
+            contents: [{ role: 'user', parts }],
             config: {
                 temperature: 0.7,
                 responseMimeType: "application/json"
