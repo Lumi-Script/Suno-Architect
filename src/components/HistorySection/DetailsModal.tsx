@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SunoClip } from '../../types';
 import CopyButton from '../Header/CopyButton';
 import { getLyricAlignment } from '../../services/sunoApi';
-import { matchWordsToPrompt, stripMetaTags, generateLrc, generateSrt } from '../../utils/lyrics';
+import { matchWordsToPrompt, stripMetaTags, generateLrc, generateSrt, sanitizeAlignedLyrics } from '../../utils/lyrics';
 
 interface DetailsModalProps {
   clip: SunoClip;
@@ -70,11 +70,7 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ clip, onClose, onUpdateClip
                   }
               }
 
-              onUpdateClip(clip.id, { 
-                  alignmentData: newData,
-                  lrcContent: lrc,
-                  srtContent: srt
-              });
+              onUpdateClip(clip.id, { alignmentData: newData, alignedLyrics: sanitizeAlignedLyrics(result.aligned_lyrics || [], newData, editedLyrics || clipData.prompt || ""), lrcContent: lrc, srtContent: srt });
           } else {
               setAlignmentError("No alignment data found.");
           }
@@ -290,7 +286,7 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ clip, onClose, onUpdateClip
                             <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Timing & Lyrics</h3>
                             <div className="flex flex-wrap items-center gap-2">
                                     {clip.alignmentData && (
-                                        <CopyButton text={JSON.stringify(clip.alignmentData, null, 2)} label="JSON" />
+                                        <CopyButton text={JSON.stringify({ alignmentData: clip.alignmentData, alignedLyrics: clip.alignedLyrics }, null, 2)} label="JSON" />
                                     )}
 
                                     {!clip.alignmentData ? (
@@ -514,3 +510,6 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ clip, onClose, onUpdateClip
 };
 
 export default DetailsModal;
+
+
+

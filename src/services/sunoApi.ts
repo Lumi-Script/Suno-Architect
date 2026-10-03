@@ -88,11 +88,10 @@ export const getSunoFeed = async (
     }
 };
 
-export const getLyricAlignment = async (songId: string, cookie: string, useV3: boolean = false): Promise<any> => {
+export const getLyricAlignment = async (songId: string, cookie: string): Promise<any> => {
     if (!cookie) throw new Error("No cookie provided");
 
-    const version = useV3 ? 'v3' : 'v2';
-    const ENDPOINT = `/api/gen/${songId}/aligned_lyrics/${version}`;
+    const ENDPOINT = `/api/gen/${songId}/aligned_lyrics/v2`;
 
     try {
         const headers: Record<string, string> = {
@@ -102,36 +101,18 @@ export const getLyricAlignment = async (songId: string, cookie: string, useV3: b
         const trimmedCookie = cookie.trim();
         headers["Authorization"] = `Bearer ${trimmedCookie}`;
 
-        const fetchOnce = async () => {
-            const response = await fetch(ENDPOINT, {
-                method: "GET",
-                headers: headers
-            });
+        const response = await fetch(ENDPOINT, {
+            method: "GET",
+            headers: headers
+        });
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch alignment. Status: ${response.status}`);
-            }
-
-            return await response.json();
-        };
-
-        if (useV3) {
-            let data = await fetchOnce();
-            let retries = 0;
-            while (data.state !== "complete" && retries < 60) {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                data = await fetchOnce();
-                retries++;
-            }
-            if (data.state !== "complete") {
-                throw new Error("Polling timed out for v3 lyrics");
-            }
-            return data;
-        } else {
-            return await fetchOnce();
+        if (!response.ok) {
+            throw new Error(`Failed to fetch alignment. Status: ${response.status}`);
         }
+
+        return await response.json();
     } catch (error) {
-        console.error(`Failed to get lyric alignment (${version}):`, error);
+        console.error(`Failed to get lyric alignment:`, error);
         throw error;
     }
 };

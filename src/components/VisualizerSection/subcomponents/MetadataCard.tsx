@@ -6,8 +6,8 @@ interface MetadataCardProps {
   onApplyLyrics: () => void;
   applyStatus: 'idle' | 'applied';
   hasAlignment: boolean;
-  useV3Lyrics: boolean;
-  setUseV3Lyrics: (val: boolean) => void;
+  useSyllables: boolean;
+  setUseSyllables: (val: boolean) => void;
 }
 
 const MetadataCard: React.FC<MetadataCardProps> = ({ 
@@ -16,8 +16,8 @@ const MetadataCard: React.FC<MetadataCardProps> = ({
   onApplyLyrics, 
   applyStatus, 
   hasAlignment,
-  useV3Lyrics,
-  setUseV3Lyrics
+  useSyllables,
+  setUseSyllables
 }) => {
   return (
     <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-lg">
@@ -46,13 +46,13 @@ const MetadataCard: React.FC<MetadataCardProps> = ({
             <div className="mt-3 px-1 flex items-start gap-2">
                 <input 
                     type="checkbox" 
-                    id="use-v3-lyrics" 
-                    checked={useV3Lyrics}
-                    onChange={(e) => setUseV3Lyrics(e.target.checked)}
+                    id="use-syllables" 
+                    checked={useSyllables}
+                    onChange={(e) => setUseSyllables(e.target.checked)}
                     className="mt-0.5"
                 />
-                <label htmlFor="use-v3-lyrics" className="text-xs text-slate-400 cursor-pointer select-none">
-                    Use <span className="font-mono text-slate-300 bg-slate-800 px-1 rounded">/v3</span> lyrics (Provides better alignment but requires polling and takes longer).
+                <label htmlFor="use-syllables" className="text-xs text-slate-400 cursor-pointer select-none">
+                    Use syllable alignment (highlights individual syllables instead of full words).
                 </label>
             </div>
             

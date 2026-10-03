@@ -74,7 +74,11 @@ export const performOfflineRender = async (
 
             const duration = source.buffer.duration;
             const totalFrames = Math.ceil(duration * fps);
-            const ctx = canvas.getContext('2d')!;
+            
+            const renderCanvas = new OffscreenCanvas(config.width, config.height);
+            const renderCtx = renderCanvas.getContext('2d', { alpha: false }) as OffscreenCanvasRenderingContext2D;
+            
+            const previewCtx = canvas.getContext('2d', { alpha: false })!;
             canvas.width = config.width;
             canvas.height = config.height;
 
@@ -83,7 +87,6 @@ export const performOfflineRender = async (
                 try {
                     fileHandle = await (window as any).showSaveFilePicker({
                         suggestedName: filename,
-                        // CHANGED: File picker accepts MP4
                         types: [{ description: 'MP4 Video', accept: { 'video/mp4': ['.mp4'] } }],
                     });
                 } catch (err: any) {
@@ -99,15 +102,11 @@ export const performOfflineRender = async (
 
             let actualAudioBitrate = config.bitrate;
             if (actualAudioBitrate === 0) {
-                // (Bytes * 8) / seconds = bits per second
                 const calculatedBitrate = Math.round((arrayBuffer.byteLength * 8) / decodedBuffer.duration);
-                
                 if (calculatedBitrate < 1000000) {
-                    // Windows MediaFoundation AAC encoder is extremely strict and only accepts standard discrete bitrates.
                     const standardBitrates = [64000, 96000, 128000, 160000, 192000, 256000];
                     let closest = standardBitrates[0];
                     let minDiff = Math.abs(calculatedBitrate - closest);
-                    
                     for (const br of standardBitrates) {
                         const diff = Math.abs(calculatedBitrate - br);
                         if (diff < minDiff) {
@@ -159,9 +158,10 @@ export const performOfflineRender = async (
                     analyser.getByteFrequencyData(freqData);
                 }
 
-                onRenderFrame(ctx, t, freqData);
+                onRenderFrame(renderCtx, t, freqData);
+                previewCtx.drawImage(renderCanvas, 0, 0);
 
-                const bitmap = await createImageBitmap(canvas);
+                const bitmap = renderCanvas.transferToImageBitmap();
 
                 framesInFlight++;
                 worker.postMessage({

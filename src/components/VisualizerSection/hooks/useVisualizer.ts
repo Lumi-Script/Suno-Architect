@@ -4,7 +4,7 @@ import { SunoClip, AlignedWord, Qt6Style } from '../../../types';
 import { getLyricAlignment, getSunoClip } from '../../../services/sunoApi';
 import { ASPECT_RATIOS, VISUALIZER_FONTS } from '../../../constants';
 import { drawCover, drawQt6Visualizer, drawScrollingLyrics, formatTime } from '../../../utils/visualizer';
-import { groupLyricsByLines, matchWordsToPrompt, groupWordsByTiming, stripMetaTags, getCleanAlignedWords } from '../../../utils/lyrics';
+import { groupLyricsByLines, matchWordsToPrompt, groupWordsByTiming, stripMetaTags, getCleanAlignedWords, alignSyllablesToPrompt, sanitizeAlignedLyrics } from '../../../utils/lyrics';
 import { performOfflineRender } from '../../../utils/offlineRender';
 import { suggestVisualizerSettings } from '../../../services/geminiService';
 
@@ -76,7 +76,7 @@ export const useVisualizer = (
     const [lines, setLines] = useState<AlignedWord[][]>([]);
     const [lyricSource, setLyricSource] = useState(''); 
     const [applyStatus, setApplyStatus] = useState<'idle' | 'applied'>('idle');
-    const [useV3Lyrics, setUseV3Lyrics] = useState(false);
+    const [useSyllables, setUseSyllables] = useState(false);
     
     // Audio/Canvas/Media References
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -103,7 +103,7 @@ export const useVisualizer = (
     const [duration, setDuration] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     
-    const v3LoadedRef = useRef<Record<string, boolean>>({});
+    const alignFetchRef = useRef<Record<string, boolean>>({});
 
     const renderStartTimeRef = useRef(0);
     const lastSpeedUpdateRef = useRef(0);
@@ -188,7 +188,8 @@ export const useVisualizer = (
                     originalData: currentClip?.originalData || {
                         style: tags, title: fetchedData.title || '', excludeStyles: '', advancedParams: '', vocalGender: '', weirdness: 50, styleInfluence: 50, lyricsWithTags: prompt, lyricsAlone: prompt.replace(/\[[\s\S]*?\]/g, "").trim(), fullResponse: ''
                     },
-                    alignmentData: currentClip?.alignmentData 
+                    alignmentData: currentClip?.alignmentData,
+                    alignedLyrics: currentClip?.alignedLyrics
                 };
             } else if (!currentClip) {
                 currentClip = {
@@ -212,22 +213,21 @@ export const useVisualizer = (
             let align = currentClip.alignmentData;
             let alignLyrics = currentClip.alignedLyrics;
             
-            const needsV3 = useV3Lyrics && !v3LoadedRef.current[currentClip.id];
+            const fetchKey = `${currentClip.id}-align`;
+            const needsFetch = (!align || (useSyllables && (!alignLyrics || alignLyrics.length === 0))) && !alignFetchRef.current[fetchKey];
 
-            // Always fetch if we need v3 or if we lack alignmentData
-            if ((!align || needsV3) && sunoCookie && !currentClip.id.startsWith('draft_')) {
+            // Always fetch if we lack alignmentData
+            if (needsFetch && sunoCookie && !currentClip.id.startsWith('draft_')) {
+                alignFetchRef.current[fetchKey] = true;
                 try {
                     setIsPreparing(true);
-                    const res = await getLyricAlignment(currentClip.id, sunoCookie, useV3Lyrics);
+                    const res = await getLyricAlignment(currentClip.id, sunoCookie);
                     if (res) {
-                        if (useV3Lyrics) {
-                            v3LoadedRef.current[currentClip.id] = true;
-                        }
                         if (res.aligned_words) align = res.aligned_words;
                         if (res.alignment) align = res.alignment;
                         if (res.aligned_lyrics) alignLyrics = res.aligned_lyrics;
                         if (history.some(h => h.id === currentClip.id)) {
-                            onUpdateClip(currentClip.id, { alignmentData: align, alignedLyrics: alignLyrics || [] });
+                            onUpdateClip(currentClip.id, { alignmentData: align, alignedLyrics: sanitizeAlignedLyrics(alignLyrics || [], align || [], sourceText || "") });
                         }
                     }
                 } catch (e) {
@@ -236,13 +236,30 @@ export const useVisualizer = (
             }
             setAlignment(align || null);
 
+            let autoLines: AlignedWord[][] = [];
             if (align) {
-                let autoLines;
                 if (sourceText) {
                     autoLines = matchWordsToPrompt(align, sourceText);
                 } else {
                     autoLines = groupWordsByTiming(align);
                 }
+            }
+
+                                    if (useSyllables && alignLyrics && alignLyrics.length > 0) {
+                if (autoLines.length > 0) {
+                    setLines(alignSyllablesToPrompt(alignLyrics, autoLines));
+                } else {
+                    const syllableLines = alignLyrics.map(line => 
+                        line.words.map(w => ({
+                            word: w.text || (w as any).word || "",
+                            start_s: w.start_s,
+                            end_s: w.end_s,
+                            success: true
+                        }))
+                    );
+                    setLines(syllableLines);
+                }
+            } else if (align) {
                 setLines(autoLines);
             }
 
@@ -250,7 +267,7 @@ export const useVisualizer = (
         };
 
         loadData();
-    }, [selectedClipId, history, sunoCookie, onUpdateClip, useV3Lyrics]);
+    }, [selectedClipId, history, sunoCookie, onUpdateClip, useSyllables]);
 
     const handleManualLoad = useCallback(() => {
         if (manualId.trim()) setSelectedClipId(manualId.trim());
@@ -281,15 +298,21 @@ export const useVisualizer = (
         }
     }, []);
 
-    const handleApplyLyrics = useCallback(() => {
+        const handleApplyLyrics = useCallback(() => {
         if(!alignment) return;
-        const newLines = matchWordsToPrompt(alignment, lyricSource);
+        let newLines = matchWordsToPrompt(alignment, lyricSource);
+        const currentClip = history.find(c => c.id === selectedClipId);
+        const alignLyrics = currentClip?.alignedLyrics;
+        
+        if (useSyllables && alignLyrics && alignLyrics.length > 0) {
+            newLines = alignSyllablesToPrompt(alignLyrics, newLines);
+        }
         setLines(newLines);
         setApplyStatus('applied');
         setTimeout(() => setApplyStatus('idle'), 2000);
     }, [alignment, lyricSource]);
 
-    const handleSmartGroup = async () => {
+        const handleSmartGroup = async () => {
         if (!clipData || !alignment) return;
         const cleanLyrics = stripMetaTags(lyricSource);
         if (!cleanLyrics.trim()) {
@@ -299,10 +322,21 @@ export const useVisualizer = (
         setIsGrouping(true);
         try {
             const cleanAligned = getCleanAlignedWords(alignment);
-            const pseudoLines = matchWordsToPrompt(alignment, lyricSource);
-            setLines(pseudoLines);
-            const grouped = await groupLyricsByLines(cleanLyrics, cleanAligned, apiKey, geminiModel, pseudoLines);
+            let pseudoLines = matchWordsToPrompt(alignment, lyricSource);
+            const currentClip = history.find(c => c.id === selectedClipId);
+            const alignLyrics = currentClip?.alignedLyrics;
+            
+            let displayPseudo = pseudoLines;
+            if (useSyllables && alignLyrics && alignLyrics.length > 0) {
+                displayPseudo = alignSyllablesToPrompt(alignLyrics, pseudoLines);
+            }
+            setLines(displayPseudo);
+            
+            let grouped = await groupLyricsByLines(cleanLyrics, cleanAligned, apiKey, geminiModel, pseudoLines);
             if (grouped && grouped.length > 0) {
+                if (useSyllables && alignLyrics && alignLyrics.length > 0) {
+                    grouped = alignSyllablesToPrompt(alignLyrics, grouped);
+                }
                 setLines(grouped);
             }
         } catch (e) {
@@ -425,7 +459,7 @@ export const useVisualizer = (
     // Preview Loop
     const animate = useCallback(() => {
         const canvas = canvasRef.current;
-        const ctx = canvas?.getContext('2d');
+        const ctx = canvas?.getContext('2d', { alpha: false });
         // Sync video playback during preview
         if (!isRendering && customBg?.type === 'video' && customVideoRef.current && audioRef.current) {
             if(!audioRef.current.paused && customVideoRef.current.paused) customVideoRef.current.play();
@@ -554,7 +588,7 @@ export const useVisualizer = (
             selectedClipId, manualId, aspectRatio, visualMode, customBg, customAudio,
             audioBitrate, videoBitrate, videoBitrateMode, imgSrc, activeColor, inactiveColor, inactiveOpacity, fontFamily,
             smoothingFactor, verticalOffset, qt6Style, qt6BarCount, qt6Sensitivity,
-            clipData, alignment, lines, lyricSource, applyStatus, useV3Lyrics,
+            clipData, alignment, lines, lyricSource, applyStatus, useSyllables,
             isRendering, renderProgress, renderSpeed, isPreparing, isGrouping, progress, duration, isPlaying,
             colorEvents
         },
@@ -562,7 +596,7 @@ export const useVisualizer = (
             setSelectedClipId, setManualId, setAspectRatio, setVisualMode, setCustomBg, setCustomAudio,
             setAudioBitrate, setVideoBitrate, setVideoBitrateMode, setImgSrc, setActiveColor, setInactiveColor, setInactiveOpacity, setFontFamily,
             setSmoothingFactor, setVerticalOffset, setQt6Style, setQt6BarCount, setQt6Sensitivity,
-            setLyricSource, setIsPlaying, setUseV3Lyrics,
+            setLyricSource, setIsPlaying, setUseSyllables,
             addColorEvent, removeColorEvent, updateColorEvent
         },
         refs: {
@@ -575,3 +609,13 @@ export const useVisualizer = (
         }
     };
 };
+
+
+
+
+
+
+
+
+
+

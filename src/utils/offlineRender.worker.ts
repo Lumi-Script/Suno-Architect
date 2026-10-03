@@ -72,7 +72,7 @@ self.onmessage = async (e) => {
             });
 
             offscreenCanvas = new OffscreenCanvas(config.width, config.height);
-            offscreenCtx = offscreenCanvas.getContext('2d', { willReadFrequently: true }) as OffscreenCanvasRenderingContext2D;
+            offscreenCtx = offscreenCanvas.getContext('2d', { alpha: false, willReadFrequently: true }) as OffscreenCanvasRenderingContext2D;
 
             videoSource = new CanvasSource(offscreenCanvas, {
                 codec: 'avc',
@@ -109,6 +109,7 @@ self.onmessage = async (e) => {
         if (type === 'ENCODE_FRAME') {
             const { bitmap, time, keyFrame } = e.data;
             
+            offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
             offscreenCtx.drawImage(bitmap, 0, 0);
             bitmap.close(); 
 

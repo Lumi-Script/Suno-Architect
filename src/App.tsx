@@ -82,7 +82,17 @@ const App: React.FC = () => {
         }
         if (saved && Array.isArray(saved)) {
            setHistory(prev => {
-               const map = new Map<string, SunoClip>(saved.map((c: any) => [c.id, c]));
+               const map = new Map<string, SunoClip>(saved.map((c: any) => {
+                   // Migration: clear potentially mixed up alignment data to force a clean refetch
+                   if (!c._migrated_v3_separation) {
+                       delete c.alignmentData;
+                       delete c.alignedLyrics;
+                       delete c.alignmentDataV3;
+                       delete c.alignedLyricsV3;
+                       c._migrated_v3_separation = true;
+                   }
+                   return [c.id, c];
+               }));
                prev.forEach(p => map.set(p.id, p)); // prev contains freshly fetched clips if any, prefer them
                return Array.from(map.values()).sort((a, b) => 
                    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()

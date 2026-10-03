@@ -44,8 +44,11 @@ export interface SunoClip {
   originalData?: ParsedSunoOutput;
   alignmentData?: AlignedWord[];
   alignedLyrics?: AlignedLyricLine[];
+  alignmentDataV3?: AlignedWord[];
+  alignedLyricsV3?: AlignedLyricLine[];
   lrcContent?: string;
   srtContent?: string;
+  _migrated_v3_separation?: boolean;
 }
 
 export interface AlignedWord {
