@@ -377,7 +377,7 @@ export const useVisualizer = (
     }, []);
 
     // --- DRAWING LOGIC ---
-    const renderFrame = (ctx: CanvasRenderingContext2D, width: number, height: number, time: number, data?: Uint8Array | Float32Array) => {
+        const renderFrame = (ctx: CanvasRenderingContext2D, width: number, height: number, time: number, data?: Uint8Array | Float32Array, isOffline = false) => {
         // Determine current colors based on time for background/visualizer
         let currentActiveColor = activeColor;
         // Find the last event that happened before or at current time
@@ -411,7 +411,11 @@ export const useVisualizer = (
                 }
             }
             // Overlay Dimmer
-            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            // MP4 H.264 encoding via WebCodecs on Windows often uses limited color range (16-235), 
+            // which crushes blacks and makes the resulting video noticeably darker.
+            // We compensate by lightening the overlay during offline render.
+                        const opacity = isOffline ? 0.35 : 0.7;
+            ctx.fillStyle = 'rgba(0,0,0,' + opacity + ')';
             ctx.fillRect(0, 0, width, height);
         } else if (visualMode === 'qt6') {
             // Qt6 Visualizer Background (Dark Gradient)
@@ -518,7 +522,7 @@ export const useVisualizer = (
                 },
                 setRenderProgress,
                 (ctx, time, data) => {
-                    renderFrame(ctx, ASPECT_RATIOS[aspectRatio].width, ASPECT_RATIOS[aspectRatio].height, time, data);
+                                          renderFrame(ctx, ASPECT_RATIOS[aspectRatio].width, ASPECT_RATIOS[aspectRatio].height, time, data, true);
                     
                     // Calculate Speed
                     const now = performance.now();
@@ -609,6 +613,9 @@ export const useVisualizer = (
         }
     };
 };
+
+
+
 
 
 
