@@ -91,9 +91,14 @@ self.onmessage = async (e) => {
             // Opus (WebM) supports high bitrates like 320kbps perfectly.
             const fallbackBitrate = audioCodec === 'opus' ? 320000 : 192000;
             
+            let finalBitrate = config.bitrate || fallbackBitrate;
+            if (audioCodec === 'aac' && finalBitrate > 192000) {
+                finalBitrate = 192000;
+            }
+            
             audioSource = new AudioBufferSource({
                 codec: audioCodec,
-                ...((audioCodec !== 'pcm-s16') && { bitrate: config.bitrate || fallbackBitrate })
+                ...((audioCodec !== 'pcm-s16') && { bitrate: finalBitrate })
             });
 
             output.addAudioTrack(audioSource);
