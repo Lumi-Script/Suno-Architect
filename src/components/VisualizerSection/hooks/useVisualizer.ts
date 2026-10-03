@@ -411,11 +411,8 @@ export const useVisualizer = (
                 }
             }
             // Overlay Dimmer
-            // MP4 H.264 encoding via WebCodecs on Windows often uses limited color range (16-235), 
-            // which crushes blacks and makes the resulting video noticeably darker.
-            // We compensate by lightening the overlay during offline render.
-                        const opacity = isOffline ? 0.35 : 0.7;
-            ctx.fillStyle = 'rgba(0,0,0,' + opacity + ')';
+                        // Overlay Dimmer
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
             ctx.fillRect(0, 0, width, height);
         } else if (visualMode === 'qt6') {
             // Qt6 Visualizer Background (Dark Gradient)
@@ -613,6 +610,7 @@ export const useVisualizer = (
         }
     };
 };
+
 
 
 

@@ -109,8 +109,12 @@ self.onmessage = async (e) => {
         if (type === 'ENCODE_FRAME') {
             const { bitmap, time, keyFrame } = e.data;
             
-            offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+                        offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+            // Apply a mathematical Full-to-Limited range color compression (16-235)
+            // This prevents H.264 WebCodecs from crushing blacks and shifting colors during playback
+            offscreenCtx.filter = 'brightness(0.982063) contrast(0.87451)';
             offscreenCtx.drawImage(bitmap, 0, 0);
+            offscreenCtx.filter = 'none';
             bitmap.close(); 
 
             await videoSource.add(time, 1 / fps, { keyFrame });
