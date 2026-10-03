@@ -1,6 +1,7 @@
 import { 
     Output, 
-    Mp4OutputFormat, // CHANGED: Replaced WebMOutputFormat with Mp4OutputFormat
+    Mp4OutputFormat, 
+    WebMOutputFormat,
     BufferTarget, 
     StreamTarget, 
     CanvasSource, 
@@ -48,6 +49,7 @@ let offscreenCanvas: OffscreenCanvas;
 let offscreenCtx: OffscreenCanvasRenderingContext2D;
 let fallbackTarget: BufferTarget | undefined;
 let fps: number = 60;
+let currentExportFormat: 'mp4' | 'webm' = 'mp4';
 
 self.onmessage = async (e) => {
     try {
@@ -56,6 +58,7 @@ self.onmessage = async (e) => {
         if (type === 'INIT') {
             const { config, fps: initFps, fileHandle, audioData } = e.data;
             fps = initFps;
+            currentExportFormat = config.exportFormat || 'mp4';
             
             let target;
             if (fileHandle) {
@@ -67,7 +70,7 @@ self.onmessage = async (e) => {
             }
 
             output = new Output({
-                format: new Mp4OutputFormat(), // CHANGED: Instantiating MP4
+                format: currentExportFormat === 'webm' ? new WebMOutputFormat() : new Mp4OutputFormat(),
                 target: target
             });
 
@@ -75,16 +78,22 @@ self.onmessage = async (e) => {
             offscreenCtx = offscreenCanvas.getContext('2d', { alpha: false, willReadFrequently: true }) as OffscreenCanvasRenderingContext2D;
 
             videoSource = new CanvasSource(offscreenCanvas, {
-                codec: 'avc',
+                codec: currentExportFormat === 'webm' ? 'vp9' : 'avc',
                 bitrate: config.videoBitrate || 5_000_000,
                 bitrateMode: config.videoBitrateMode || 'variable' 
             });
             output.addVideoTrack(videoSource, { frameRate: fps });
 
-            const useFlac = (config.bitrate || 0) >= 1000000;
+                        const useFlac = (config.bitrate || 0) >= 1000000;
+            const audioCodec = currentExportFormat === 'webm' ? 'opus' : (useFlac ? 'pcm-s16' : 'aac');
+            
+            // AAC (MP4) often caps out at 192kbps in WebCodecs implementations. 
+            // Opus (WebM) supports high bitrates like 320kbps perfectly.
+            const fallbackBitrate = audioCodec === 'opus' ? 320000 : 192000;
+            
             audioSource = new AudioBufferSource({
-                codec: useFlac ? 'pcm-s16' : 'aac',
-                ...(!useFlac && { bitrate: config.bitrate || 128000 })
+                codec: audioCodec,
+                ...((audioCodec !== 'pcm-s16') && { bitrate: config.bitrate || fallbackBitrate })
             });
 
             output.addAudioTrack(audioSource);
@@ -111,7 +120,6 @@ self.onmessage = async (e) => {
             
                         offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
             // Apply a mathematical Full-to-Limited range color compression (16-235)
-            // This prevents H.264 WebCodecs from crushing blacks and shifting colors during playback
             offscreenCtx.filter = 'brightness(0.982063) contrast(0.87451)';
             offscreenCtx.drawImage(bitmap, 0, 0);
             offscreenCtx.filter = 'none';
@@ -135,3 +143,10 @@ self.onmessage = async (e) => {
         self.postMessage({ type: 'ERROR', message: err.message || 'Worker Error' });
     }
 };
+
+
+
+
+
+
+

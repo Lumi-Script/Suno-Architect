@@ -15,10 +15,11 @@ export const performOfflineRender = async (
         videoBitrateMode: 'constant' | 'variable';
         fps: number;
         title: string;
-        visualMode: 'cover' | 'qt6';
+                visualMode: 'cover' | 'qt6';
         qt6Style: Qt6Style;
         customVideo?: HTMLVideoElement | null;
         customBgType?: 'image' | 'video';
+        exportFormat?: 'mp4' | 'webm';
     },
     onProgress: (progress: number) => void,
     onRenderFrame: (ctx: CanvasRenderingContext2D, time: number, data: Uint8Array | Float32Array) => void
@@ -26,9 +27,9 @@ export const performOfflineRender = async (
     return new Promise<void>(async (resolve, reject) => {
         try {
             const worker = new Worker(new URL('./offlineRender.worker.ts', import.meta.url), { type: 'module' });
-            const fps = config.fps || 30;
-            // CHANGED: File extension to .mp4
-            const filename = `${(config.title || 'video').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_suno_architect.mp4`;
+                        const fps = config.fps || 30;
+            const format = config.exportFormat || 'mp4';
+                        const filename = `${(config.title || 'video').replace(/[^a-z0-9]/gi, '_').toLowerCase()}_suno_architect.${format}`;
 
             let resolveWorkerReady: () => void;
             const workerReadyPromise = new Promise<void>((res) => { resolveWorkerReady = res; });
@@ -44,7 +45,7 @@ export const performOfflineRender = async (
                     }
                 } else if (e.data.type === 'DONE') {
                     if (e.data.buffer) {
-                        triggerDownload(e.data.buffer, filename);
+                        triggerDownload(e.data.buffer, filename, config.exportFormat || 'mp4');
                     }
                     worker.terminate();
                     resolve();
@@ -87,7 +88,7 @@ export const performOfflineRender = async (
                 try {
                     fileHandle = await (window as any).showSaveFilePicker({
                         suggestedName: filename,
-                        types: [{ description: 'MP4 Video', accept: { 'video/mp4': ['.mp4'] } }],
+                                                types: [{ description: format === 'mp4' ? 'MP4 Video' : 'WebM Video', accept: format === 'mp4' ? { 'video/mp4': ['.mp4'] } : { 'video/webm': ['.webm'] } }],
                     });
                 } catch (err: any) {
                     if (err.name === 'AbortError') return reject(new Error("Render Cancelled"));
@@ -104,7 +105,7 @@ export const performOfflineRender = async (
             if (actualAudioBitrate === 0) {
                 const calculatedBitrate = Math.round((arrayBuffer.byteLength * 8) / decodedBuffer.duration);
                 if (calculatedBitrate < 1000000) {
-                    const standardBitrates = [64000, 96000, 128000, 160000, 192000, 256000];
+                    const standardBitrates = [64000, 96000, 128000, 160000, 192000, 256000, 320000];
                     let closest = standardBitrates[0];
                     let minDiff = Math.abs(calculatedBitrate - closest);
                     for (const br of standardBitrates) {
@@ -192,9 +193,9 @@ export const performOfflineRender = async (
     });
 };
 
-const triggerDownload = (buffer: ArrayBuffer, filename: string) => {
-    // CHANGED: Blob mime type to video/mp4
-    const blob = new Blob([buffer], { type: 'video/mp4' });
+const triggerDownload = (buffer: ArrayBuffer, filename: string, format: string) => {
+    const mimeType = format === 'mp4' ? 'video/mp4' : 'video/webm';
+    const blob = new Blob([buffer], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -204,3 +205,8 @@ const triggerDownload = (buffer: ArrayBuffer, filename: string) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };
+
+
+
+
+

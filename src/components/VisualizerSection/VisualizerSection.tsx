@@ -99,7 +99,8 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({ history, sunoCook
                         onStartRender={handlers.startOfflineRender}
                         isPreparing={state.isPreparing}
                         hasAlignment={!!state.alignment}
-                        hasAudio={!!state.customAudio}
+                                                hasAudio={!!state.customAudio}
+                        exportFormat={state.exportFormat}
                      />
                  </div>
 
@@ -123,7 +124,8 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({ history, sunoCook
                         qt6BarCount={state.qt6BarCount} setQt6BarCount={setters.setQt6BarCount}
                         qt6Sensitivity={state.qt6Sensitivity} setQt6Sensitivity={setters.setQt6Sensitivity}
                         videoBitrate={state.videoBitrate} setVideoBitrate={setters.setVideoBitrate}
-                        videoBitrateMode={state.videoBitrateMode} setVideoBitrateMode={setters.setVideoBitrateMode}
+                                                videoBitrateMode={state.videoBitrateMode} setVideoBitrateMode={setters.setVideoBitrateMode}
+                        exportFormat={state.exportFormat} setExportFormat={setters.setExportFormat}
                         fps={state.fps} setFps={setters.setFps}
                         onReset={() => {
                             setters.setActiveColor('#e879f9');
@@ -179,3 +181,5 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({ history, sunoCook
 };
 
 export default VisualizerSection;
+
+

@@ -24,8 +24,10 @@ interface VisualizerSettingsProps {
     setQt6Sensitivity: (val: number) => void;
     videoBitrate: number;
     setVideoBitrate: (val: number) => void;
-    videoBitrateMode: 'constant' | 'variable';
+        videoBitrateMode: 'constant' | 'variable';
     setVideoBitrateMode: (val: 'constant' | 'variable') => void;
+    exportFormat?: 'mp4' | 'webm';
+    setExportFormat?: (val: 'mp4' | 'webm') => void;
     onReset: () => void;
     onAiSuggest?: () => Promise<void>;
 }
@@ -34,7 +36,7 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
     fontFamily, setFontFamily, activeColor, setActiveColor, inactiveColor, setInactiveColor,
     smoothingFactor, setSmoothingFactor, verticalOffset, setVerticalOffset, inactiveOpacity, setInactiveOpacity,
     visualMode, qt6Style, setQt6Style, qt6BarCount, setQt6BarCount, qt6Sensitivity, setQt6Sensitivity, 
-    videoBitrate, setVideoBitrate, videoBitrateMode, setVideoBitrateMode,
+        videoBitrate, setVideoBitrate, videoBitrateMode, setVideoBitrateMode, exportFormat, setExportFormat,
     onReset, onAiSuggest
 }) => {
   const [isSuggesting, setIsSuggesting] = React.useState(false);
@@ -148,6 +150,17 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
                     step={100000}
                 />
             </div>
+                        <div className="col-span-2 md:col-span-1">
+                <label className="text-[10px] text-slate-500 block mb-1 flex justify-between">Export Format <span title="WebM preserves colors better and supports transparency. MP4 plays on iPhones.">?</span></label>
+                <select 
+                    value={exportFormat || 'mp4'}
+                    onChange={(e) => setExportFormat && setExportFormat(e.target.value as 'mp4' | 'webm')}
+                    className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200"
+                >
+                    <option value="mp4">MP4 (H.264)</option>
+                    <option value="webm">WebM (VP8/VP9)</option>
+                </select>
+            </div>
             <div className="col-span-2 md:col-span-1">
                 <label className="text-[10px] text-slate-500 block mb-1">Bitrate Mode</label>
                 <select 
@@ -234,3 +247,4 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
 };
 
 export default VisualizerSettings;
+

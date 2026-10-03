@@ -26,7 +26,8 @@ export const useVisualizer = (
     const [customAudio, setCustomAudio] = useState<{ url: string, name: string } | null>(null);
     const [audioBitrate, setAudioBitrate] = useState(0);
     const [videoBitrate, setVideoBitrate] = useState(5000000);
-    const [videoBitrateMode, setVideoBitrateMode] = useState<'constant' | 'variable'>('variable');
+        const [videoBitrateMode, setVideoBitrateMode] = useState<'constant' | 'variable'>('variable');
+    const [exportFormat, setExportFormat] = useState<'mp4' | 'webm'>('mp4');
     const [imgSrc, setImgSrc] = useState<string>('');
 
     // Update video bitrate based on resolution
@@ -515,7 +516,8 @@ export const useVisualizer = (
                     visualMode,
                     qt6Style,
                     customVideo: customVideoRef.current,
-                    customBgType: customBg?.type
+                                        customBgType: customBg?.type,
+                    exportFormat
                 },
                 setRenderProgress,
                 (ctx, time, data) => {
@@ -584,8 +586,9 @@ export const useVisualizer = (
         if (suggestion.inactiveColor) setInactiveColor(suggestion.inactiveColor);
     };
 
-    return {
+        return {
         state: {
+            exportFormat,
             selectedClipId, manualId, aspectRatio, visualMode, customBg, customAudio,
             audioBitrate, videoBitrate, videoBitrateMode, imgSrc, activeColor, inactiveColor, inactiveOpacity, fontFamily,
             smoothingFactor, verticalOffset, qt6Style, qt6BarCount, qt6Sensitivity,
@@ -593,7 +596,8 @@ export const useVisualizer = (
             isRendering, renderProgress, renderSpeed, isPreparing, isGrouping, progress, duration, isPlaying,
             colorEvents
         },
-        setters: {
+                setters: {
+            setExportFormat,
             setSelectedClipId, setManualId, setAspectRatio, setVisualMode, setCustomBg, setCustomAudio,
             setAudioBitrate, setVideoBitrate, setVideoBitrateMode, setImgSrc, setActiveColor, setInactiveColor, setInactiveOpacity, setFontFamily,
             setSmoothingFactor, setVerticalOffset, setQt6Style, setQt6BarCount, setQt6Sensitivity,
@@ -610,6 +614,9 @@ export const useVisualizer = (
         }
     };
 };
+
+
+
 
 
 
