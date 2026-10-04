@@ -91,7 +91,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
           )}
           <video 
               ref={videoRef}
-              src={customBg?.type === 'video' ? customBg.url : ''}
+              src={customBg?.type === 'video' ? customBg.url : undefined}
               className="hidden"
               crossOrigin="anonymous"
               muted
@@ -197,3 +197,4 @@ const MediaCard: React.FC<MediaCardProps> = ({
 };
 
 export default MediaCard;
+

@@ -26,8 +26,11 @@ interface VisualizerSettingsProps {
     setVideoBitrate: (val: number) => void;
         videoBitrateMode: 'constant' | 'variable';
     setVideoBitrateMode: (val: 'constant' | 'variable') => void;
-    exportFormat?: 'mp4' | 'webm';
+            exportFormat?: 'mp4' | 'webm';
     setExportFormat?: (val: 'mp4' | 'webm') => void;
+    colorSpaceFix?: boolean;
+    setColorSpaceFix?: (val: boolean) => void;
+    
     onReset: () => void;
     onAiSuggest?: () => Promise<void>;
 }
@@ -36,7 +39,7 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
     fontFamily, setFontFamily, activeColor, setActiveColor, inactiveColor, setInactiveColor,
     smoothingFactor, setSmoothingFactor, verticalOffset, setVerticalOffset, inactiveOpacity, setInactiveOpacity,
     visualMode, qt6Style, setQt6Style, qt6BarCount, setQt6BarCount, qt6Sensitivity, setQt6Sensitivity, 
-        videoBitrate, setVideoBitrate, videoBitrateMode, setVideoBitrateMode, exportFormat, setExportFormat,
+        videoBitrate, setVideoBitrate,     videoBitrateMode, setVideoBitrateMode,     exportFormat, setExportFormat, colorSpaceFix, setColorSpaceFix,
     onReset, onAiSuggest
 }) => {
   const [isSuggesting, setIsSuggesting] = React.useState(false);
@@ -161,6 +164,24 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
                     <option value="webm">WebM (VP8/VP9)</option>
                 </select>
             </div>
+                        
+                        <div className="col-span-2 md:col-span-1">
+                <label className="text-[10px] text-slate-500 block mb-1 flex justify-between">
+                    Color Space Fix <span title="Applies a CSS filter to prevent local video players from crushing blacks. Leave ON for local playback. Turn OFF if uploading to YouTube, as YouTube applies its own stretch.">?</span>
+                </label>
+                <div className="flex items-center h-[34px]">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                            type="checkbox" 
+                            className="sr-only peer"
+                            checked={colorSpaceFix !== false} // Default true
+                            onChange={(e) => setColorSpaceFix && setColorSpaceFix(e.target.checked)}
+                        />
+                        <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <span className="ml-2 text-xs text-slate-300">{colorSpaceFix !== false ? 'ON (Local)' : 'OFF (YouTube)'}</span>
+                    </label>
+                </div>
+            </div>
             <div className="col-span-2 md:col-span-1">
                 <label className="text-[10px] text-slate-500 block mb-1">Bitrate Mode</label>
                 <select 
@@ -247,4 +268,8 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
 };
 
 export default VisualizerSettings;
+
+
+
+
 

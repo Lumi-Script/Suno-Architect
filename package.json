@@ -10,12 +10,17 @@
     "dev:worker": "wrangler dev"
   },
   "dependencies": {
+    "@ffmpeg/core": "^0.12.6",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@google/genai": "^2.10.0",
     "jszip": "^3.10.1",
     "mediabunny": "^1.50.6",
+    "mp4-muxer": "^5.2.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "string-similarity": "^4.0.4"
+    "string-similarity": "^4.0.4",
+    "webm-muxer": "^5.1.4"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",

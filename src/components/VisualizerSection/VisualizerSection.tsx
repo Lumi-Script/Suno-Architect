@@ -79,7 +79,7 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({ history, sunoCook
                          <audio 
                             ref={refs.audioRef} 
                             controls 
-                            src={state.customAudio ? state.customAudio.url : ''}
+                            src={state.customAudio ? state.customAudio.url : undefined}
                             crossOrigin="anonymous" // CRITICAL FOR RECORDING
                             className="w-full h-8"
                             onLoadedMetadata={(e) => handlers.setDuration(e.currentTarget.duration)}
@@ -125,7 +125,8 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({ history, sunoCook
                         qt6Sensitivity={state.qt6Sensitivity} setQt6Sensitivity={setters.setQt6Sensitivity}
                         videoBitrate={state.videoBitrate} setVideoBitrate={setters.setVideoBitrate}
                                                 videoBitrateMode={state.videoBitrateMode} setVideoBitrateMode={setters.setVideoBitrateMode}
-                        exportFormat={state.exportFormat} setExportFormat={setters.setExportFormat}
+                                                                        exportFormat={state.exportFormat} setExportFormat={setters.setExportFormat}
+                        colorSpaceFix={state.colorSpaceFix} setColorSpaceFix={setters.setColorSpaceFix}
                         fps={state.fps} setFps={setters.setFps}
                         onReset={() => {
                             setters.setActiveColor('#e879f9');
@@ -181,5 +182,9 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({ history, sunoCook
 };
 
 export default VisualizerSection;
+
+
+
+
 
 

@@ -50,6 +50,8 @@ let offscreenCtx: OffscreenCanvasRenderingContext2D;
 let fallbackTarget: BufferTarget | undefined;
 let fps: number = 60;
 let currentExportFormat: 'mp4' | 'webm' = 'mp4';
+let applyColorSpaceFix: boolean = true;
+
 
 self.onmessage = async (e) => {
     try {
@@ -58,7 +60,9 @@ self.onmessage = async (e) => {
         if (type === 'INIT') {
             const { config, fps: initFps, fileHandle, audioData } = e.data;
             fps = initFps;
-            currentExportFormat = config.exportFormat || 'mp4';
+                                    currentExportFormat = config.exportFormat || 'mp4';
+            applyColorSpaceFix = config.colorSpaceFix !== false;
+            
             
             let target;
             if (fileHandle) {
@@ -124,10 +128,14 @@ self.onmessage = async (e) => {
             const { bitmap, time, keyFrame } = e.data;
             
                         offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-            // Apply a mathematical Full-to-Limited range color compression (16-235)
-            offscreenCtx.filter = 'brightness(0.982063) contrast(0.87451)';
+                                                if (applyColorSpaceFix) {
+                // Apply a mathematical Full-to-Limited range color compression (16-235)
+                offscreenCtx.filter = 'brightness(0.982063) contrast(0.87451)';
+            }
             offscreenCtx.drawImage(bitmap, 0, 0);
-            offscreenCtx.filter = 'none';
+            if (applyColorSpaceFix) {
+                offscreenCtx.filter = 'none';
+            }
             bitmap.close(); 
 
             await videoSource.add(time, 1 / fps, { keyFrame });
@@ -148,6 +156,9 @@ self.onmessage = async (e) => {
         self.postMessage({ type: 'ERROR', message: err.message || 'Worker Error' });
     }
 };
+
+
+
 
 
 

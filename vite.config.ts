@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => {
           tailwindcss(),
       ],
       server: {
+          
           proxy: {
               '/api': {
                   target: 'https://studio-api.prod.suno.com',
@@ -22,3 +23,5 @@ export default defineConfig(({ mode }) => {
       }
     };
 });
+
+

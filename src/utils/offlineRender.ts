@@ -19,7 +19,8 @@ export const performOfflineRender = async (
         qt6Style: Qt6Style;
         customVideo?: HTMLVideoElement | null;
         customBgType?: 'image' | 'video';
-        exportFormat?: 'mp4' | 'webm';
+                        exportFormat?: 'mp4' | 'webm';
+        colorSpaceFix?: boolean;
     },
     onProgress: (progress: number) => void,
     onRenderFrame: (ctx: CanvasRenderingContext2D, time: number, data: Uint8Array | Float32Array) => void
@@ -43,12 +44,37 @@ export const performOfflineRender = async (
                         resolvePushback();
                         resolvePushback = null;
                     }
-                } else if (e.data.type === 'DONE') {
-                    if (e.data.buffer) {
-                        triggerDownload(e.data.buffer, filename, config.exportFormat || 'mp4');
-                    }
-                    worker.terminate();
-                    resolve();
+                                } else if (e.data.type === 'DONE') {
+                    const handleDone = async () => {
+                                                if (e.data.buffer) {
+                            try {
+                                const { fixVideoColors } = await import('./ffmpegColorFix');
+                                const fixedBuffer = await fixVideoColors(e.data.buffer, format as any, (msg) => {
+                                    console.log(msg);
+                                });
+                                
+                                if (fileHandle) {
+                                    const writable = await fileHandle.createWritable();
+                                    await writable.write(fixedBuffer);
+                                    await writable.close();
+                                } else {
+                                    triggerDownload(fixedBuffer, filename, format);
+                                }
+                            } catch (err) {
+                                console.error("FFmpeg fix failed, falling back to raw buffer", err);
+                                if (fileHandle) {
+                                    const writable = await fileHandle.createWritable();
+                                    await writable.write(e.data.buffer);
+                                    await writable.close();
+                                } else {
+                                    triggerDownload(e.data.buffer, filename, format);
+                                }
+                            }
+                        }
+                        worker.terminate();
+                        resolve();
+                    };
+                    handleDone();
                 } else if (e.data.type === 'ERROR') {
                     worker.terminate();
                     reject(new Error(e.data.message));
@@ -83,16 +109,16 @@ export const performOfflineRender = async (
             canvas.width = config.width;
             canvas.height = config.height;
 
-            let fileHandle = null;
+                        let fileHandle: any = null;
             if ('showSaveFilePicker' in window) {
                 try {
                     fileHandle = await (window as any).showSaveFilePicker({
                         suggestedName: filename,
-                                                types: [{ description: format === 'mp4' ? 'MP4 Video' : 'WebM Video', accept: format === 'mp4' ? { 'video/mp4': ['.mp4'] } : { 'video/webm': ['.webm'] } }],
+                        types: [{ description: format === 'mp4' ? 'MP4 Video' : 'WebM Video', accept: format === 'mp4' ? { 'video/mp4': ['.mp4'] } : { 'video/webm': ['.webm'] } }],
                     });
                 } catch (err: any) {
                     if (err.name === 'AbortError') return reject(new Error("Render Cancelled"));
-                    console.warn("File System Access failed, falling back to RAM.", err);
+                    console.warn("File System Access failed", err);
                 }
             }
 
@@ -124,11 +150,11 @@ export const performOfflineRender = async (
 
             const { customVideo, bitrate, ...workerConfig } = config;
 
-            worker.postMessage({
+                        worker.postMessage({
                 type: 'INIT',
                 config: { ...workerConfig, bitrate: actualAudioBitrate }, 
                 fps,
-                fileHandle, 
+                fileHandle: null, // Force the worker to use BufferTarget so we can intercept the buffer for FFmpeg
                 audioData: {
                     channels: channelData,
                     sampleRate: decodedBuffer.sampleRate,
@@ -205,6 +231,11 @@ const triggerDownload = (buffer: ArrayBuffer, filename: string, format: string) 
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };
+
+
+
+
+
 
 
 
