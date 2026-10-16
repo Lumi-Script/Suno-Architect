@@ -53,9 +53,9 @@ export const generateSunoPrompt = async (
          return originalFetch(url, { ...init, headers });
       };
       
-      ai = new GoogleGenAI({ apiKey: "OAUTH", vertexai: isVertex });
+      ai = new GoogleGenAI({ apiKey: "OAUTH", vertexai: isVertex, location="us-central1" });
   } else {
-      ai = new GoogleGenAI({ apiKey: apiKey as string, vertexai: isVertex });
+      ai = new GoogleGenAI({ apiKey: apiKey as string, vertexai: isVertex, location="us-central1" });
   }
 
   if (!systemInstruction) {
@@ -220,7 +220,7 @@ const cleanTrailingHyphens = (text: string): string => {
 
 export const suggestVisualizerSettings = async (
     customApiKey?: string,
-    geminiModel: string = "gemini-3.5-flash",
+    geminiModel: string = "gemini-3.6-flash",
     base64Image?: string,
     imageMimeType?: string
 ): Promise<{ font: string, activeColor: string, inactiveColor: string }> => {
