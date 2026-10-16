@@ -53,9 +53,9 @@ export const generateSunoPrompt = async (
          return originalFetch(url, { ...init, headers });
       };
       
-      ai = new GoogleGenAI({ apiKey: "OAUTH", vertexai: isVertex, location: "us-central1" });
+      ai = new GoogleGenAI({ apiKey: "OAUTH", vertexai: isVertex });
   } else {
-      ai = new GoogleGenAI({ apiKey: apiKey as string, vertexai: isVertex, location: "us-central1" });
+      ai = new GoogleGenAI({ apiKey: apiKey as string, vertexai: isVertex });
   }
 
   if (!systemInstruction) {
