@@ -26,7 +26,7 @@ export const generateSunoPrompt = async (
   userInput: string, 
   customApiKey?: string,
   systemInstruction?: string,
-  geminiModel: string = "gemini-3.8-flash",
+  geminiModel: string = "gemini-4-argon",
   contextFiles: FileContext[] = [],
   numTracks: number = 1
 ): Promise<ParsedSunoOutput[]> => {
@@ -40,40 +40,27 @@ export const generateSunoPrompt = async (
   const isOAuthToken = !apiKey && !!googleToken;
   const isVertex = localStorage.getItem('is_vertex_key') === 'true';
 
-  // THE FIX: Intercept both the URL and the JSON Body
+  // THE FIX: Intercept the naked URL and rewrite it to target us-central1 explicitly
   const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       let requestUrl = input instanceof Request ? input.url : input.toString();
-      let requestInit = { ...init };
       const headers = new Headers(init?.headers);
 
-      if (isVertex) {
-          // 1. Rewrite the URL (Subdomain and Path)
-          requestUrl = requestUrl.replace(
-              /https:\/\/[a-z0-9-]+-aiplatform\.googleapis\.com/, 
-              'https://aiplatform.googleapis.com'
-          );
-          requestUrl = requestUrl.replace(
-              /\/locations\/[^\/]+\/publishers/, 
-              '/locations/global/publishers'
-          );
-
-          // 2. Rewrite the JSON Request Body
-          if (requestInit.body && typeof requestInit.body === 'string') {
-              requestInit.body = requestInit.body.replace(
-                  /locations\/[^\/]+\/publishers/g, 
-                  'locations/global/publishers'
-              );
-          }
+      if (isVertex && requestUrl.includes('publishers/google/models/')) {
+          // Extract the model name and the API method (e.g., gemini-4-argon:generateContent)
+          const urlParts = requestUrl.split('publishers/google/models/');
+          const modelAndMethod = urlParts[1];
+          
+          // Rebuild the fully qualified Vertex AI URL targeting us-central1
+          // Ensure the project ID matches your Google Cloud Project
+          requestUrl = `https://us-central1-aiplatform.googleapis.com/v1beta1/projects/90224269909/locations/us-central1/publishers/google/models/${modelAndMethod}`;
       }
 
       if (isOAuthToken) {
           headers.delete('x-goog-api-key');
           headers.set('Authorization', `Bearer ${googleToken}`);
       }
-      
-      requestInit.headers = headers;
 
-      return fetch(requestUrl, requestInit);
+      return fetch(requestUrl, { ...init, headers });
   };
   
   const ai = new GoogleGenAI({ 
@@ -231,6 +218,7 @@ const cleanTrailingHyphens = (text: string): string => {
     return text.replace(/[ \t]*[-–—]+[ \t]*$/gm, "");
 };
 
+// Update suggestVisualizerSettings with the exact same injected interceptor
 export const suggestVisualizerSettings = async (
     customApiKey?: string,
     geminiModel: string = "gemini-3.8-flash",
@@ -250,35 +238,20 @@ export const suggestVisualizerSettings = async (
   
     const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         let requestUrl = input instanceof Request ? input.url : input.toString();
-        let requestInit = { ...init };
         const headers = new Headers(init?.headers);
   
-        if (isVertex) {
-            requestUrl = requestUrl.replace(
-                /https:\/\/[a-z0-9-]+-aiplatform\.googleapis\.com/, 
-                'https://aiplatform.googleapis.com'
-            );
-            requestUrl = requestUrl.replace(
-                /\/locations\/[^\/]+\/publishers/, 
-                '/locations/global/publishers'
-            );
-
-            if (requestInit.body && typeof requestInit.body === 'string') {
-                requestInit.body = requestInit.body.replace(
-                    /locations\/[^\/]+\/publishers/g, 
-                    'locations/global/publishers'
-                );
-            }
+        if (isVertex && requestUrl.includes('publishers/google/models/')) {
+            const urlParts = requestUrl.split('publishers/google/models/');
+            const modelAndMethod = urlParts[1];
+            requestUrl = `https://us-central1-aiplatform.googleapis.com/v1beta1/projects/90224269909/locations/us-central1/publishers/google/models/${modelAndMethod}`;
         }
   
         if (isOAuthToken) {
             headers.delete('x-goog-api-key');
             headers.set('Authorization', `Bearer ${googleToken}`);
         }
-        
-        requestInit.headers = headers;
   
-        return fetch(requestUrl, requestInit);
+        return fetch(requestUrl, { ...init, headers });
     };
   
     const ai = new GoogleGenAI({ 
