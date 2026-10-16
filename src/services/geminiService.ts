@@ -34,6 +34,7 @@ const withRetry = async <T>(operation: () => Promise<T>, maxRetries = 3): Promis
 export const generateSunoPrompt = async (
   userInput: string, 
   config: GenAIConfig,
+  customApiKey?: string,
   systemInstruction?: string,
   geminiModel: string = "gemini-3.8-flash",
   contextFiles: FileContext[] = [],
@@ -250,7 +251,8 @@ export const suggestVisualizerSettings = async (
     config: GenAIConfig,
     geminiModel: string = "gemini-3.8-flash",
     base64Image?: string,
-    imageMimeType?: string
+    imageMimeType?: string,
+    customApiKey?: string,
 ): Promise<{ font: string, activeColor: string, inactiveColor: string }> => {
     
     const isOAuthToken = !config.apiKey && !!config.googleAccessToken;
