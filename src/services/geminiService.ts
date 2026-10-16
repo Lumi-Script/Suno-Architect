@@ -1,14 +1,7 @@
-import { GoogleGenAI } from "@google/genai";
+
+import { GoogleGenAI, Type } from "@google/genai";
 import { ParsedSunoOutput, AlignedWord, FileContext } from "../types";
 import { GET_STRICT_OUTPUT_SUFFIX } from "../constants";
-
-// Provide this configuration from your Worker's request/env context
-export interface GenAIConfig {
-  apiKey?: string;
-  googleAccessToken?: string;
-  isVertex?: boolean;
-  projectId?: string;
-}
 
 const withRetry = async <T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> => {
     let lastError: any;
@@ -33,45 +26,37 @@ const withRetry = async <T>(operation: () => Promise<T>, maxRetries = 3): Promis
 
 export const generateSunoPrompt = async (
   userInput: string, 
-  config: GenAIConfig,
+  customApiKey?: string,
   systemInstruction?: string,
-  geminiModel: string = "gemini-3.8-flash",
+  geminiModel: string = "gemini-3,8-flash",
   contextFiles: FileContext[] = [],
   numTracks: number = 1
 ): Promise<ParsedSunoOutput[]> => {
-  const apiKey = config.apiKey;
-  const googleToken = config.googleAccessToken;
+  const apiKey = customApiKey || process.env.API_KEY;
+  const googleToken = localStorage.getItem('google_access_token');
 
   if (!apiKey && !googleToken) {
     throw new Error("API Key or Google Auth missing.");
   }
 
   const isOAuthToken = !apiKey && !!googleToken;
-  
-  // Create a localized fetch to avoid polluting the global Cloudflare isolate
-  const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
-     const headers = new Headers(init?.headers);
-     if (isOAuthToken) {
+
+  let ai;
+  const originalFetch = window.fetch;
+  const isVertex = localStorage.getItem('is_vertex_key') === 'true';
+
+  if (isOAuthToken) {
+      window.fetch = async (url, init) => {
+         const headers = new Headers(init?.headers);
          headers.delete('x-goog-api-key');
          headers.set('Authorization', `Bearer ${googleToken}`);
-     }
-     // Use Cloudflare's native global fetch
-     return globalThis.fetch(url, { ...init, headers });
-  };
-
-  // Configure GoogleGenAI specifically for Vertex AI in us-central1
-  const aiConfig: any = {
-      apiKey: apiKey || "OAUTH",
-      httpOptions: { fetch: customFetch }
-  };
-
-  if (config.isVertex) {
-      aiConfig.vertexai = true;
-      aiConfig.project = config.projectId || "90224269909";
-      aiConfig.location = "us-central1";
+         return originalFetch(url, { ...init, headers });
+      };
+      
+      ai = new GoogleGenAI({ apiKey: "OAUTH", vertexai: isVertex });
+  } else {
+      ai = new GoogleGenAI({ apiKey: apiKey as string, vertexai: isVertex });
   }
-
-  const ai = new GoogleGenAI(aiConfig);
 
   if (!systemInstruction) {
       throw new Error("System Instruction is missing.");
@@ -145,6 +130,10 @@ export const generateSunoPrompt = async (
     console.error("Gemini API Error:", error);
     const msg = error.message || "Failed to generate prompt.";
     throw new Error(msg);
+  } finally {
+    if (isOAuthToken) {
+        window.fetch = originalFetch;
+    }
   }
 };
 
@@ -230,35 +219,34 @@ const cleanTrailingHyphens = (text: string): string => {
 };
 
 export const suggestVisualizerSettings = async (
-    config: GenAIConfig,
-    geminiModel: string = "gemini-3.8-flash",
+    customApiKey?: string,
+    geminiModel: string = "gemini-3.6-flash",
     base64Image?: string,
     imageMimeType?: string
 ): Promise<{ font: string, activeColor: string, inactiveColor: string }> => {
-    
-    const isOAuthToken = !config.apiKey && !!config.googleAccessToken;
-
-    const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
-        const headers = new Headers(init?.headers);
-        if (isOAuthToken) {
-            headers.delete('x-goog-api-key');
-            headers.set('Authorization', `Bearer ${config.googleAccessToken}`);
-        }
-        return globalThis.fetch(url, { ...init, headers });
-    };
-
-    const aiConfig: any = {
-        apiKey: config.apiKey || "OAUTH",
-        httpOptions: { fetch: customFetch }
-    };
+    const apiKey = customApiKey || process.env.API_KEY;
+    const googleToken = localStorage.getItem('google_access_token');
   
-    if (config.isVertex) {
-        aiConfig.vertexai = true;
-        aiConfig.project = config.projectId || "90224269909";
-        aiConfig.location = "us-central1";
+    if (!apiKey && !googleToken) {
+      throw new Error("API Key or Google Auth missing.");
     }
   
-    const ai = new GoogleGenAI(aiConfig);
+    const isOAuthToken = !apiKey && !!googleToken;
+    let ai;
+    const originalFetch = window.fetch;
+    const isVertex = localStorage.getItem('is_vertex_key') === 'true';
+  
+    if (isOAuthToken) {
+        window.fetch = async (url, init) => {
+           const headers = new Headers(init?.headers);
+           headers.delete('x-goog-api-key');
+           headers.set('Authorization', `Bearer ${googleToken}`);
+           return originalFetch(url, { ...init, headers });
+        };
+        ai = new GoogleGenAI({ apiKey: "OAUTH", vertexai: isVertex });
+    } else {
+        ai = new GoogleGenAI({ apiKey: apiKey as string, vertexai: isVertex });
+    }
   
     const prompt = `Analyze this image (if provided) and suggest a font, active color, and inactive color for a lyric visualizer overlay.
     If no image is provided, suggest a cool combination.
@@ -296,5 +284,9 @@ export const suggestVisualizerSettings = async (
     } catch (e: any) {
         console.error("Gemini suggestion error:", e);
         throw new Error(e.message || "Failed to generate suggestions.");
+    } finally {
+        if (isOAuthToken) {
+            window.fetch = originalFetch;
+        }
     }
 };
