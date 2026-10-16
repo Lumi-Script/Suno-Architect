@@ -26,7 +26,7 @@ export const generateSunoPrompt = async (
   userInput: string, 
   customApiKey?: string,
   systemInstruction?: string,
-  geminiModel: string = "gemini-3.8-flash",
+  geminiModel: string = "gemini-4-argon",
   contextFiles: FileContext[] = [],
   numTracks: number = 1
 ): Promise<ParsedSunoOutput[]> => {
@@ -40,33 +40,42 @@ export const generateSunoPrompt = async (
   const isOAuthToken = !apiKey && !!googleToken;
   const isVertex = localStorage.getItem('is_vertex_key') === 'true';
 
-  // Custom fetch to force the global endpoint URL structure for Gemini 4 Argon
+  // THE FIX: Intercept both the URL and the JSON Body
   const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
       let requestUrl = input instanceof Request ? input.url : input.toString();
-      
+      let requestInit = { ...init };
+      const headers = new Headers(init?.headers);
+
       if (isVertex) {
-          // 1. Strip the region from the subdomain to use the global endpoint
+          // 1. Rewrite the URL (Subdomain and Path)
           requestUrl = requestUrl.replace(
               /https:\/\/[a-z0-9-]+-aiplatform\.googleapis\.com/, 
               'https://aiplatform.googleapis.com'
           );
-          // 2. Change the location path to 'global'
           requestUrl = requestUrl.replace(
-              /\/locations\/[a-z0-9-]+\//, 
-              '/locations/global/'
+              /\/locations\/[^\/]+\/publishers/, 
+              '/locations/global/publishers'
           );
+
+          // 2. Rewrite the JSON Request Body
+          if (requestInit.body && typeof requestInit.body === 'string') {
+              requestInit.body = requestInit.body.replace(
+                  /locations\/[^\/]+\/publishers/g, 
+                  'locations/global/publishers'
+              );
+          }
       }
 
-      const headers = new Headers(init?.headers);
       if (isOAuthToken) {
           headers.delete('x-goog-api-key');
           headers.set('Authorization', `Bearer ${googleToken}`);
       }
+      
+      requestInit.headers = headers;
 
-      return fetch(requestUrl, { ...init, headers });
+      return fetch(requestUrl, requestInit);
   };
   
-  // Initialize WITHOUT project or location to avoid the SDK browser error
   const ai = new GoogleGenAI({ 
       apiKey: apiKey || "OAUTH", 
       vertexai: isVertex,
@@ -144,7 +153,7 @@ export const generateSunoPrompt = async (
   } 
 };
 
-// --- (Parsing helpers remain exactly the same as your original code) ---
+// --- (Parsing helpers remain exactly the same) ---
 const parseMultipleResponses = (fullText: string): ParsedSunoOutput[] => {
   const trackSplits = fullText.split(/--- TRACK \d+ ---/i).filter(s => s.trim().length > 10);
   
@@ -222,7 +231,6 @@ const cleanTrailingHyphens = (text: string): string => {
     return text.replace(/[ \t]*[-–—]+[ \t]*$/gm, "");
 };
 
-// Update suggestVisualizerSettings with the exact same injected interceptor
 export const suggestVisualizerSettings = async (
     customApiKey?: string,
     geminiModel: string = "gemini-3.8-flash",
@@ -242,25 +250,35 @@ export const suggestVisualizerSettings = async (
   
     const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         let requestUrl = input instanceof Request ? input.url : input.toString();
-        
+        let requestInit = { ...init };
+        const headers = new Headers(init?.headers);
+  
         if (isVertex) {
             requestUrl = requestUrl.replace(
                 /https:\/\/[a-z0-9-]+-aiplatform\.googleapis\.com/, 
                 'https://aiplatform.googleapis.com'
             );
             requestUrl = requestUrl.replace(
-                /\/locations\/[a-z0-9-]+\//, 
-                '/locations/global/'
+                /\/locations\/[^\/]+\/publishers/, 
+                '/locations/global/publishers'
             );
+
+            if (requestInit.body && typeof requestInit.body === 'string') {
+                requestInit.body = requestInit.body.replace(
+                    /locations\/[^\/]+\/publishers/g, 
+                    'locations/global/publishers'
+                );
+            }
         }
   
-        const headers = new Headers(init?.headers);
         if (isOAuthToken) {
             headers.delete('x-goog-api-key');
             headers.set('Authorization', `Bearer ${googleToken}`);
         }
+        
+        requestInit.headers = headers;
   
-        return fetch(requestUrl, { ...init, headers });
+        return fetch(requestUrl, requestInit);
     };
   
     const ai = new GoogleGenAI({ 
