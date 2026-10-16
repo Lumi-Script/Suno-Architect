@@ -26,11 +26,10 @@ export const generateSunoPrompt = async (
   userInput: string, 
   customApiKey?: string,
   systemInstruction?: string,
-  geminiModel: string = "gemini-4-argon",
+  geminiModel: string = "gemini-3.8-flash",
   contextFiles: FileContext[] = [],
   numTracks: number = 1
 ): Promise<ParsedSunoOutput[]> => {
-  // Use import.meta.env for Vite instead of process.env
   const apiKey = customApiKey || import.meta.env?.VITE_API_KEY; 
   const googleToken = localStorage.getItem('google_access_token');
 
@@ -39,38 +38,41 @@ export const generateSunoPrompt = async (
   }
 
   const isOAuthToken = !apiKey && !!googleToken;
-  let ai;
-  const originalFetch = window.fetch;
   const isVertex = localStorage.getItem('is_vertex_key') === 'true';
 
-  // THE FIX: Intercept the fetch to inject auth AND force the us-central1 region
-  window.fetch = async (input, init) => {
-      // Safely get the URL string
-      let requestUrl = typeof input === 'string' ? input : (input instanceof Request ? input.url : input.toString());
-      const headers = new Headers(init?.headers);
+  // THE FIX: Use a dedicated custom fetch function passed directly into the SDK
+  const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      // 1. Ensure URL is a string
+      let requestUrl = input instanceof Request ? input.url : input.toString();
       
+      // 2. Forcefully rewrite the Vertex AI routing to us-central1
+      if (isVertex) {
+          requestUrl = requestUrl.replace(
+              /https:\/\/[a-z0-9-]+-aiplatform\.googleapis\.com/, 
+              'https://us-central1-aiplatform.googleapis.com'
+          );
+          requestUrl = requestUrl.replace(
+              /\/locations\/[a-z0-9-]+\//, 
+              '/locations/us-central1/'
+          );
+      }
+
+      // 3. Handle headers for OAuth if necessary
+      const headers = new Headers(init?.headers);
       if (isOAuthToken) {
           headers.delete('x-goog-api-key');
           headers.set('Authorization', `Bearer ${googleToken}`);
       }
 
-      // Rewrite the Vertex AI URL to target us-central1 and your project
-      if (isVertex && requestUrl.includes('aiplatform.googleapis.com')) {
-          // Change the subdomain region (e.g., asia-southeast1-aiplatform -> us-central1-aiplatform)
-          requestUrl = requestUrl.replace(/https:\/\/[a-z0-9-]+-aiplatform/, 'https://us-central1-aiplatform');
-          // Change the location path
-          requestUrl = requestUrl.replace(/\/locations\/[a-z0-9-]+/, '/locations/us-central1');
-          // Ensure the project ID is correct (replace with whatever default it picked)
-          requestUrl = requestUrl.replace(/\/projects\/[^\/]+/, '/projects/90224269909');
-      }
-
-      return originalFetch(requestUrl, { ...init, headers });
+      // 4. Execute the network call
+      return fetch(requestUrl, { ...init, headers });
   };
   
-  // Initialize WITHOUT project or location to avoid the SDK browser error
-  ai = new GoogleGenAI({ 
+  // Inject the custom fetch directly into the SDK's networking layer
+  const ai = new GoogleGenAI({ 
       apiKey: apiKey || "OAUTH", 
-      vertexai: isVertex 
+      vertexai: isVertex,
+      httpOptions: { fetch: customFetch } 
   });
 
   if (!systemInstruction) {
@@ -141,10 +143,7 @@ export const generateSunoPrompt = async (
     console.error("Gemini API Error:", error);
     const msg = error.message || "Failed to generate prompt.";
     throw new Error(msg);
-  } finally {
-    // ALWAYS restore the original fetch when done so we don't break other parts of the app
-    window.fetch = originalFetch;
-  }
+  } 
 };
 
 // --- (Parsing helpers remain exactly the same as your original code) ---
@@ -153,7 +152,7 @@ const extractCodeBlocks = (text: string): string[] => { /* ... */ };
 const constructParsedOutput = (matches: string[], rawText: string): ParsedSunoOutput => { /* ... */ };
 const cleanTrailingHyphens = (text: string): string => { /* ... */ };
 
-// Update suggestVisualizerSettings with the exact same interceptor logic
+// Update suggestVisualizerSettings with the exact same injected interceptor
 export const suggestVisualizerSettings = async (
     customApiKey?: string,
     geminiModel: string = "gemini-3.8-flash",
@@ -169,30 +168,36 @@ export const suggestVisualizerSettings = async (
     }
   
     const isOAuthToken = !apiKey && !!googleToken;
-    let ai;
-    const originalFetch = window.fetch;
     const isVertex = localStorage.getItem('is_vertex_key') === 'true';
   
-    window.fetch = async (input, init) => {
-        let requestUrl = typeof input === 'string' ? input : (input instanceof Request ? input.url : input.toString());
-        const headers = new Headers(init?.headers);
+    const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+        let requestUrl = input instanceof Request ? input.url : input.toString();
         
+        if (isVertex) {
+            requestUrl = requestUrl.replace(
+                /https:\/\/[a-z0-9-]+-aiplatform\.googleapis\.com/, 
+                'https://us-central1-aiplatform.googleapis.com'
+            );
+            requestUrl = requestUrl.replace(
+                /\/locations\/[a-z0-9-]+\//, 
+                '/locations/us-central1/'
+            );
+        }
+  
+        const headers = new Headers(init?.headers);
         if (isOAuthToken) {
             headers.delete('x-goog-api-key');
             headers.set('Authorization', `Bearer ${googleToken}`);
         }
   
-        // Force the URL to us-central1 for Vertex AI
-        if (isVertex && requestUrl.includes('aiplatform.googleapis.com')) {
-            requestUrl = requestUrl.replace(/https:\/\/[a-z0-9-]+-aiplatform/, 'https://us-central1-aiplatform');
-            requestUrl = requestUrl.replace(/\/locations\/[a-z0-9-]+/, '/locations/us-central1');
-            requestUrl = requestUrl.replace(/\/projects\/[^\/]+/, '/projects/90224269909');
-        }
-  
-        return originalFetch(requestUrl, { ...init, headers });
+        return fetch(requestUrl, { ...init, headers });
     };
   
-    ai = new GoogleGenAI({ apiKey: apiKey || "OAUTH", vertexai: isVertex });
+    const ai = new GoogleGenAI({ 
+        apiKey: apiKey || "OAUTH", 
+        vertexai: isVertex,
+        httpOptions: { fetch: customFetch }
+    });
   
     const prompt = `Analyze this image (if provided) and suggest a font, active color, and inactive color for a lyric visualizer overlay.
     If no image is provided, suggest a cool combination.
@@ -230,7 +235,5 @@ export const suggestVisualizerSettings = async (
     } catch (e: any) {
         console.error("Gemini suggestion error:", e);
         throw new Error(e.message || "Failed to generate suggestions.");
-    } finally {
-        window.fetch = originalFetch;
     }
 };
