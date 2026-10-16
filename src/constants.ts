@@ -7,16 +7,12 @@ export const SUNO_MODEL_MAPPINGS = [
 ];
 
 export const GEMINI_MODEL_MAPPINGS = [
+  { label: "Gemini 4 Argon", value: "gemini-4-argon" },
   { label: "Gemini 3.8 Flash", value: "gemini-3.8-flash" },
-  { label: "Gemini 3.7 Flash", value: "gemini-3.7-flash" },
   { label: "Gemini 3.6 Flash", value: "gemini-3.6-flash" },
-  { label: "Gemini 3.5 Flash", value: "gemini-3.5-flash" },
   { label: "Gemini 3.5 Flash-Lite", value: "gemini-3.5-flash-lite" },
   { label: "Gemini 3.1 Flash-Lite", value: "gemini-3.1-flash-lite" },
   { label: "Gemini 3.1 Pro (Preview)", value: "gemini-3.1-pro-preview" },
-  { label: "Gemini 3.0 Flash (Preview)", value: "gemini-3-flash-preview" },
-  { label: "Gemini 2.5 Pro", value: "gemini-2.5-pro" },
-  { label: "Gemini 2.5 Flash", value: "gemini-2.5-flash" },
 ];
 export const DEFAULT_SUNO_LIBRARY: SunoLibrary = {
   genres: ["Pop", "K-Pop", "J-Pop", "Synth-pop", "Rock", "Hard Rock", "Alt Rock", "Indie Rock", "Prog Rock", "Punk", "Metal", "Hip-Hop", "Rap", "Trap", "R&B", "Soul", "Drill", "EDM", "House", "Techno", "Trance", "Dubstep", "DnB", "Ambient", "Synthwave", "Folk", "Country", "Jazz", "Blues", "Classical", "Reggae", "Latin"],
