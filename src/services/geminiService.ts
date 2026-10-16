@@ -50,9 +50,9 @@ export const generateSunoPrompt = async (
           const urlParts = requestUrl.split('publishers/google/models/');
           const modelAndMethod = urlParts[1];
           
-          // Rebuild the fully qualified Vertex AI URL targeting us-central1
-          // Ensure the project ID matches your Google Cloud Project
-          requestUrl = `https://us-central1-aiplatform.googleapis.com/v1beta1/projects/90224269909/locations/us-central1/publishers/google/models/${modelAndMethod}`;
+          // Rebuild the URL to target the GLOBAL endpoint for preview models
+          // Note: No region prefix on aiplatform.googleapis.com, and location is 'global'
+          requestUrl = `https://aiplatform.googleapis.com/v1beta1/projects/90224269909/locations/global/publishers/google/models/${modelAndMethod}`;
       }
 
       if (isOAuthToken) {
