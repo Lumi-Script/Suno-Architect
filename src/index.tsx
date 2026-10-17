@@ -16,6 +16,7 @@ if (window.location.pathname === '/GoogleOAuth') {
   
   if (accessToken) {
     localStorage.setItem('google_access_token', accessToken);
+    localStorage.removeItem('vertex_project_id');
     window.location.href = '/';
   } else {
     root.render(

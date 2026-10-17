@@ -1,5 +1,6 @@
 import { AlignedWord } from '../types';
 import { Type, GoogleGenAI } from "@google/genai";
+import { createCustomFetch } from '../services/geminiService';
 
 export const stripMetaTags = (text: string): string => {
     if (!text) return "";
@@ -269,7 +270,14 @@ export const groupLyricsByLines = async (
   if (!key) return fallback || [];
 
   const isVertex = localStorage.getItem('is_vertex_key') === 'true';
-  const ai = new GoogleGenAI({ apiKey: key, vertexai: isVertex });
+  const googleToken = localStorage.getItem('google_access_token');
+  const isOAuthToken = !key && !!googleToken;
+  const customFetch = createCustomFetch(isVertex, isOAuthToken, googleToken);
+  const ai = new GoogleGenAI({ 
+    apiKey: key || "OAUTH", 
+    vertexai: isVertex,
+    httpOptions: { fetch: customFetch }
+  });
 
   try {
     const response = await ai.models.generateContent({

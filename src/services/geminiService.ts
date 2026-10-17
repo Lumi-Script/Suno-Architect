@@ -22,11 +22,91 @@ const withRetry = async <T>(operation: () => Promise<T>, maxRetries = 3): Promis
     throw lastError;
 };
 
+/**
+ * Custom fetch interceptor for GoogleGenAI.
+ * When Vertex AI is enabled, instead of blindly hardcoding a project ID,
+ * it calls the usual Vertex API endpoint. If the model is not found in the regional
+ * default endpoint, Vertex returns an error response containing the project ID in its message.
+ * We extract that project ID from the body, cache it, and retry the request at the global endpoint.
+ */
+export const createCustomFetch = (
+  isVertex: boolean,
+  isOAuthToken: boolean,
+  googleToken: string | null
+) => {
+  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const requestUrl = input instanceof Request ? input.url : input.toString();
+    const headers = new Headers(init?.headers);
+
+    let body = init?.body;
+    if (!body && input instanceof Request && input.body) {
+      try {
+        body = await input.clone().text();
+      } catch (e) {
+        console.warn("Could not read input body stream:", e);
+      }
+    }
+
+    if (isOAuthToken && googleToken) {
+      headers.delete('x-goog-api-key');
+      headers.set('Authorization', `Bearer ${googleToken}`);
+    }
+
+    const requestOptions: RequestInit = {
+      ...init,
+      headers,
+      ...(body ? { body } : {})
+    };
+
+    if (isVertex && requestUrl.includes('publishers/google/models/')) {
+      const urlParts = requestUrl.split('publishers/google/models/');
+      const modelAndMethod = urlParts[1];
+
+      // If we previously extracted and cached the project ID, attempt to use it directly
+      const cachedProjectId = localStorage.getItem('vertex_project_id');
+      if (cachedProjectId) {
+        const globalUrl = `https://aiplatform.googleapis.com/v1beta1/projects/${cachedProjectId}/locations/global/publishers/google/models/${modelAndMethod}`;
+        const cachedRes = await fetch(globalUrl, requestOptions);
+        if (cachedRes.ok) {
+          return cachedRes;
+        }
+        // If cached project ID is no longer valid (e.g. key changed), invalidate cache
+        localStorage.removeItem('vertex_project_id');
+      }
+
+      // Call the usual API to allow Vertex AI to return the error containing the project ID
+      const response = await fetch(requestUrl, requestOptions);
+      if (response.ok) {
+        return response;
+      }
+
+      // Clone response to inspect error body without consuming the original stream
+      try {
+        const cloned = response.clone();
+        const errorText = await cloned.text();
+        const match = errorText.match(/projects\/([^/`'"\s]+)\/locations\//);
+        if (match && match[1]) {
+          const extractedProjectId = match[1];
+          localStorage.setItem('vertex_project_id', extractedProjectId);
+          const globalUrl = `https://aiplatform.googleapis.com/v1beta1/projects/${extractedProjectId}/locations/global/publishers/google/models/${modelAndMethod}`;
+          return await fetch(globalUrl, requestOptions);
+        }
+      } catch (err) {
+        console.error("Failed to extract project ID from Vertex response:", err);
+      }
+
+      return response;
+    }
+
+    return fetch(requestUrl, requestOptions);
+  };
+};
+
 export const generateSunoPrompt = async (
   userInput: string, 
   customApiKey?: string,
   systemInstruction?: string,
-  geminiModel: string = "gemini-4-argon",
+  geminiModel: string = "gemini-3.8-flash",
   contextFiles: FileContext[] = [],
   numTracks: number = 1
 ): Promise<ParsedSunoOutput[]> => {
@@ -40,28 +120,7 @@ export const generateSunoPrompt = async (
   const isOAuthToken = !apiKey && !!googleToken;
   const isVertex = localStorage.getItem('is_vertex_key') === 'true';
 
-  // THE FIX: Intercept the naked URL and rewrite it to target us-central1 explicitly
-  const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-      let requestUrl = input instanceof Request ? input.url : input.toString();
-      const headers = new Headers(init?.headers);
-
-      if (isVertex && requestUrl.includes('publishers/google/models/')) {
-          // Extract the model name and the API method (e.g., gemini-4-argon:generateContent)
-          const urlParts = requestUrl.split('publishers/google/models/');
-          const modelAndMethod = urlParts[1];
-          
-          // Rebuild the URL to target the GLOBAL endpoint for preview models
-          // Note: No region prefix on aiplatform.googleapis.com, and location is 'global'
-          requestUrl = `https://aiplatform.googleapis.com/v1beta1/projects/90224269909/locations/global/publishers/google/models/${modelAndMethod}`;
-      }
-
-      if (isOAuthToken) {
-          headers.delete('x-goog-api-key');
-          headers.set('Authorization', `Bearer ${googleToken}`);
-      }
-
-      return fetch(requestUrl, { ...init, headers });
-  };
+  const customFetch = createCustomFetch(isVertex, isOAuthToken, googleToken);
   
   const ai = new GoogleGenAI({ 
       apiKey: apiKey || "OAUTH", 
@@ -236,23 +295,7 @@ export const suggestVisualizerSettings = async (
     const isOAuthToken = !apiKey && !!googleToken;
     const isVertex = localStorage.getItem('is_vertex_key') === 'true';
   
-    const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-        let requestUrl = input instanceof Request ? input.url : input.toString();
-        const headers = new Headers(init?.headers);
-  
-        if (isVertex && requestUrl.includes('publishers/google/models/')) {
-            const urlParts = requestUrl.split('publishers/google/models/');
-            const modelAndMethod = urlParts[1];
-            requestUrl = `https://aiplatform.googleapis.com/v1beta1/projects/90224269909/locations/global/publishers/google/models/${modelAndMethod}`;
-        }
-  
-        if (isOAuthToken) {
-            headers.delete('x-goog-api-key');
-            headers.set('Authorization', `Bearer ${googleToken}`);
-        }
-  
-        return fetch(requestUrl, { ...init, headers });
-    };
+    const customFetch = createCustomFetch(isVertex, isOAuthToken, googleToken);
   
     const ai = new GoogleGenAI({ 
         apiKey: apiKey || "OAUTH", 

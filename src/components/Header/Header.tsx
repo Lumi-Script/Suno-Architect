@@ -119,6 +119,7 @@ export const Header: React.FC<HeaderProps> = ({
         localStorage.setItem('gemini_api_key', trimmed);
         localStorage.setItem('is_vertex_key', isVertexKey.toString());
         localStorage.removeItem('google_access_token');
+        localStorage.removeItem('vertex_project_id');
         setHasGoogleAuth(false);
         setHasKey(true);
         setShowKeyInput(false);
@@ -127,6 +128,7 @@ export const Header: React.FC<HeaderProps> = ({
     } else {
         localStorage.removeItem('gemini_api_key');
         localStorage.removeItem('is_vertex_key');
+        localStorage.removeItem('vertex_project_id');
         
         const hasEnv = !!process.env.API_KEY || !!localStorage.getItem('google_access_token');
         setHasKey(hasEnv);
@@ -235,6 +237,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <button
                         onClick={() => {
                             localStorage.removeItem('google_access_token');
+                            localStorage.removeItem('vertex_project_id');
                             setHasGoogleAuth(false);
                             const stored = !!localStorage.getItem('gemini_api_key') || !!process.env.API_KEY;
                             setHasKey(stored);
