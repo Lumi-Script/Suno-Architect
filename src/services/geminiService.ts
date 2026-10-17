@@ -52,7 +52,7 @@ export const generateSunoPrompt = async (
           
           // Rebuild the URL to target the GLOBAL endpoint for preview models
           // Note: No region prefix on aiplatform.googleapis.com, and location is 'global'
-          requestUrl = `https://global-aiplatform.googleapis.com/v1beta1/publishers/google/models/${modelAndMethod}?key=${headers.get('x-goog-api-key')}`;
+          requestUrl = `https://aiplatform.googleapis.com/v1beta1/projects/90224269909/locations/global/publishers/google/models/${modelAndMethod}`;
       }
 
       if (isOAuthToken) {
@@ -243,7 +243,7 @@ export const suggestVisualizerSettings = async (
         if (isVertex && requestUrl.includes('publishers/google/models/')) {
             const urlParts = requestUrl.split('publishers/google/models/');
             const modelAndMethod = urlParts[1];
-            requestUrl = `https://us-central1-aiplatform.googleapis.com/v1beta1/projects/90224269909/locations/us-central1/publishers/google/models/${modelAndMethod}`;
+            requestUrl = `https://aiplatform.googleapis.com/v1beta1/projects/90224269909/locations/global/publishers/google/models/${modelAndMethod}`;
         }
   
         if (isOAuthToken) {
