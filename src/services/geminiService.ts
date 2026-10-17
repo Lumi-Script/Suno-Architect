@@ -52,7 +52,7 @@ export const generateSunoPrompt = async (
           
           // Rebuild the URL to target the GLOBAL endpoint for preview models
           // Note: No region prefix on aiplatform.googleapis.com, and location is 'global'
-          requestUrl = `https://aiplatform.googleapis.com/v1beta1/publishers/google/models/${modelAndMethod}?key=${headers.get('x-goog-api-key')}`;
+          requestUrl = `https://global-aiplatform.googleapis.com/v1beta1/publishers/google/models/${modelAndMethod}?key=${headers.get('x-goog-api-key')}`;
       }
 
       if (isOAuthToken) {
