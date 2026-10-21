@@ -1,0 +1,144 @@
+export interface ColorEvent {
+  time: number;
+  activeColor: string;
+  inactiveColor: string;
+}
+
+export interface ParsedSunoOutput {
+  style: string;
+  title: string;
+  excludeStyles: string;
+  advancedParams: string;
+  vocalGender: string;
+  weirdness: number;
+  styleInfluence: number;
+  lyricsWithTags: string;
+  lyricsAlone: string;
+  fullResponse: string;
+}
+
+export interface GenerationState {
+  isLoading: boolean;
+  error: string | null;
+  result: ParsedSunoOutput[] | null;
+}
+
+export interface SunoClip {
+  id: string;
+  title: string;
+  created_at: string;
+  model_name: string;
+  workspaceId?: string;
+  imageUrl?: string;
+  imageLargeUrl?: string;
+  explicit?: boolean;
+  metadata: {
+    tags: string;
+    prompt: string;
+    negative_tags?: string;
+    duration?: number;
+    max_bpm?: number;
+    min_bpm?: number;
+    avg_bpm?: number;
+    key?: string;
+  };
+  originalData?: ParsedSunoOutput;
+  alignmentData?: AlignedWord[];
+  alignedLyrics?: AlignedLyricLine[];
+  alignmentDataV3?: AlignedWord[];
+  alignedLyricsV3?: AlignedLyricLine[];
+  lrcContent?: string;
+  srtContent?: string;
+  _migrated_v3_separation?: boolean;
+}
+
+export interface SunoWorkspace {
+  id: string;
+  name: string;
+  description?: string;
+  clip_count?: number;
+  last_updated_clip?: string;
+  shared?: boolean;
+  can_invite?: boolean;
+  share_action?: string;
+  is_pinned_in_library?: boolean;
+  created_at?: string;
+  isPhantom?: boolean;
+  owner?: {
+    user_id?: string;
+    user_display_name?: string;
+    user_avatar_url?: string;
+    user_invite_status?: string;
+  };
+}
+
+export interface AlignedWord {
+  word: string;
+  start_s: number;
+  end_s: number;
+  success: boolean;
+  p_align: number;
+}
+
+export interface AlignedLyricWord {
+  text: string;
+  start_s: number;
+  end_s: number;
+}
+
+export interface AlignedLyricLine {
+  text: string;
+  start_s: number;
+  end_s: number;
+  section?: string;
+  words: AlignedLyricWord[];
+}
+
+export interface LyricAlignmentResponse {
+  aligned_words: AlignedWord[];
+  aligned_lyrics?: AlignedLyricLine[];
+}
+
+export interface SunoLibrary {
+  genres: string[];
+  structures: string[];
+  vocalStyles: string[];
+  production: string[];
+  theory: string[];
+}
+
+export interface LyricalConstraints {
+  forbidden: string[];
+  forbiddenAdjectives: string[];
+  forbiddenPhrases: string[];
+  forbiddenRhymes: string; // Keep as string for simple editing
+}
+
+export interface SunoPersona {
+  id: string;
+  name: string;
+  description?: string;
+  image_s3_id?: string;
+}
+
+export interface PromptSettings {
+  version: 'v1' | 'v2' | 'v3' | 'v4' | 'custom';
+  customSystemPrompt: string;
+  library: SunoLibrary;
+  constraints: LyricalConstraints;
+  includeVoice?: boolean;
+  personaId?: string;
+  personaName?: string;
+  personaUUID?: string;
+  audioWeight?: number;
+}
+
+export interface FileContext {
+  mimeType: string;
+  data: string; // Base64 data URL
+  name: string;
+}
+
+export type ViewMode = 'generator' | 'history' | 'visualizer';
+
+export type Qt6Style = 'wave' | 'bars' | 'circle' | 'circular-wave';
