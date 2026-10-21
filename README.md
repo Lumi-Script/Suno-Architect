@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Suno Architect
 
 <p align="center">
@@ -12,6 +13,15 @@
   <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/TailwindCSS-4.3-38bdf8.svg?logo=tailwindcss" alt="Tailwind CSS"></a>
   <a href="https://workers.cloudflare.com/"><img src="https://img.shields.io/badge/Cloudflare-Workers%20%26%20Pages-f38020.svg?logo=cloudflare" alt="Cloudflare"></a>
 </p>
+=======
+# Suno Architect - Auto Generate Suno Prompts
+- Various free and paid Gemini models available
+- Gemini Flash 3, 3.1-lite, 3.5-lite, 3.5 and 3.6 have generous free limits.
+  - Flash-lite models have 20/min and 500/day limits
+  - Non-lite Flash models have 5/min and 20/day limits
+  - [Full Rate Limits](https://aistudio.google.com/rate-limit) - _Paid is required for Pro models._
+  - Create a key in [aistudio](https://aistudio.google.com/api-keys) with billing disabled for free flash model access.
+>>>>>>> 59aa392e8b51d99c4a1f13429a29b50be0efadec
 
 ---
 
