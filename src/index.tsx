@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { RouterProvider } from './router/Router';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -17,7 +18,7 @@ if (window.location.pathname === '/GoogleOAuth') {
   if (accessToken) {
     localStorage.setItem('google_access_token', accessToken);
     localStorage.removeItem('vertex_project_id');
-    window.location.href = '/';
+    window.location.href = '/lyrics';
   } else {
     root.render(
       <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
@@ -29,7 +30,9 @@ if (window.location.pathname === '/GoogleOAuth') {
 } else {
   root.render(
     <React.StrictMode>
-      <App />
+      <RouterProvider>
+        <App />
+      </RouterProvider>
     </React.StrictMode>
   );
 }

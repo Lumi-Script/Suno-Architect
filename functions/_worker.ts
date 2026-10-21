@@ -1,6 +1,15 @@
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request: any, env: any, ctx: any) {
     const url = new URL(request.url);
+
+    // If it's not an API request, let Cloudflare Assets serve static files & SPA fallback
+    if (!url.pathname.startsWith('/api')) {
+      if (env.ASSETS) {
+        return env.ASSETS.fetch(request);
+      }
+      return new Response("Not found", { status: 404 });
+    }
+
     if (request.method === "OPTIONS") {
       return new Response(null, {
         headers: {
@@ -12,19 +21,13 @@ export default {
       });
     }
 
-    let pathname = url.pathname;
-    if (pathname.startsWith('/api')) {
-      pathname = pathname.substring(4);
-    }
-    
+    let pathname = url.pathname.substring(4);
     if (!pathname.startsWith('/')) { pathname = '/' + pathname; }
     
     const targetUrl = "https://studio-api.prod.suno.com/api" + pathname + url.search;
     const headers = new Headers(request.headers);
     headers.set("Origin", "https://suno.com");
     headers.set("Referer", "https://suno.com/");
-    
-    // Ensure Host header is not forwarded incorrectly (Cloudflare handles this usually, but good practice)
     headers.delete("Host");
 
     const newRequest = new Request(targetUrl, {
@@ -42,7 +45,7 @@ export default {
       newResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
       return newResponse;
-    } catch (e) {
+    } catch (e: any) {
       return new Response(JSON.stringify({ error: e.message }), {
         status: 500,
         headers: {

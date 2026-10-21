@@ -3,7 +3,7 @@ import InputSection from './components/InputSection/InputSection';
 import OutputSection from './components/OutputSection/OutputSection';
 import { Header } from './components/Header/Header';
 import { generateSunoPrompt } from './services/geminiService';
-import { GenerationState, SunoClip, ParsedSunoOutput, PromptSettings, ViewMode, FileContext } from './types';
+import { GenerationState, SunoClip, ParsedSunoOutput, PromptSettings, FileContext } from './types';
 import { DEFAULT_SUNO_LIBRARY, DEFAULT_LYRICAL_CONSTRAINTS, buildKnowledgeBase, GET_PROMPT_V4 } from './constants';
 import Footer from './components/Footer/Footer';
 import SunoSettingsModal from './components/Header/SunoSettingsModal';
@@ -13,6 +13,11 @@ import HistorySection from './components/HistorySection/HistorySection';
 import VisualizerSection from './components/VisualizerSection/VisualizerSection';
 import { stripMetaTags } from './utils/lyrics';
 import { get, set } from './utils/idb';
+import { useRouter, Link } from './router/Router';
+import { HomePage } from './pages/HomePage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
+import { AboutPage } from './pages/AboutPage';
 
 // Helper to map API response to SunoClip
 const mapSunoClip = (clip: any): SunoClip => {
@@ -57,13 +62,13 @@ const mapSunoClip = (clip: any): SunoClip => {
 };
 
 const App: React.FC = () => {
+  const { currentPath } = useRouter();
+
   const [state, setState] = useState<GenerationState>({
     isLoading: false,
     error: null,
     result: null,
   });
-
-  const [view, setView] = useState<ViewMode>('generator');
   
   const [history, setHistory] = useState<SunoClip[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
@@ -433,155 +438,162 @@ const App: React.FC = () => {
       mergeClips(clipsArray);
   }, []);
 
-  const renderContent = () => {
-      switch(view) {
-          case 'history':
-              return (
-                <HistorySection 
-                    history={history} 
-                    onUpdateClip={handleUpdateClip} 
-                    onAddClip={handleAddClip}
-                    sunoCookie={sunoCookie}
-                    onFetchHistory={handleFetchHistory}
-                    isSyncing={isSyncingHistory}
-                    syncProgress={syncProgress}
-                />
-              );
-          case 'visualizer':
-              return (
-                  <VisualizerSection 
-                    history={history}
-                    sunoCookie={sunoCookie}
-                    onUpdateClip={handleUpdateClip}
-                    apiKey={customApiKey}
-                    geminiModel={geminiModel} 
-                  />
-              );
-          case 'generator':
-          default:
-              return (
-                <div className="flex flex-col gap-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-                      <div className="lg:col-span-4 space-y-6">
-                          <div className="sticky top-24">
-                          <div className="mb-6">
-                              <h2 className="text-3xl font-bold text-white mb-2">Architect Your Album</h2>
-                              <p className="text-slate-400 text-sm leading-relaxed">
-                                  Transform raw ideas into structured albums (up to 7 tracks). 
-                                  Generates cohesive prompts with production directives for Suno & Udio.
-                              </p>
-                          </div>
-                          <InputSection 
-                              onGenerate={handleGenerate} 
-                              isLoading={state.isLoading} 
-                              apiKeyValid={isKeyValid} 
-                          />
-                          {state.error && (
-                              <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200 text-sm">
-                              <strong>Error:</strong> {state.error}
-                              </div>
-                          )}
-                          </div>
-                      </div>
-                      <div className="lg:col-span-8">
-                          {state.result ? (
-                          <OutputSection 
-                              results={state.result} 
-                              sunoCookie={sunoCookie}
-                              sunoModel={sunoModel}
-                              promptSettings={promptSettings}
-                              onSyncSuccess={handleSyncSuccess}
-                              onUpdateTrack={handleUpdateResult}
-                          />
-                          ) : (
-                          <div className="h-full flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-slate-800 rounded-2xl bg-slate-900/20 text-slate-600 min-h-[400px]">
-                              {!state.isLoading && (
-                              <>
-                                  <div className="w-16 h-16 rounded-full bg-slate-800 mb-4 flex items-center justify-center">
-                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 opacity-50">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
-                                  </svg>
-                                  </div>
-                                  <p className="text-lg font-medium">Ready to Generate</p>
-                                  <p className="text-sm mt-1">Your structured album tracks will appear here.</p>
-                              </>
-                              )}
-                              {state.isLoading && (
-                              <div className="flex flex-col items-center animate-pulse">
-                                  <div className="h-4 w-3/4 bg-slate-800 rounded mb-3"></div>
-                                  <div className="h-4 w-1/2 bg-slate-800 rounded mb-3"></div>
-                                  <div className="h-32 w-full bg-slate-800 rounded"></div>
-                              </div>
-                              )}
-                          </div>
-                          )}
-                      </div>
-                  </div>
-                  
-                  {!state.result && !state.isLoading && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-800/50">
-                          {/* Card 1 */}
-                          <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group hover:bg-slate-800/80 hover:border-purple-500/30 transition-all duration-300">
-                              <div className="absolute top-0 right-0 p-4 opacity-10 text-purple-500 group-hover:scale-110 transition-transform duration-300">
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16">
-                                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                                  </svg>
-                              </div>
-                              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-purple-400">
-                                      <polyline points="20 6 9 17 4 12" />
-                                  </svg>
-                                  Advanced Prompting
-                              </h3>
-                              <p className="text-sm text-slate-400 leading-relaxed pr-8">
-                                 Uses the latest Gemini LLMs and specialized system instructions to generate highly structured, emotive meta-tags tailored specifically for AI music engines.
-                              </p>
-                          </div>
-                          
-                          {/* Card 2 */}
-                          <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group hover:bg-slate-800/80 hover:border-pink-500/30 transition-all duration-300">
-                              <div className="absolute top-0 right-0 p-4 opacity-10 text-pink-500 group-hover:scale-110 transition-transform duration-300">
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16">
-                                      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-                                      <path d="M3 12v5a2 2 0 0 0 2 2h16v-4"></path>
-                                      <path d="M3 15h14"></path>
-                                  </svg>
-                              </div>
-                              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-pink-400">
-                                      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-                                      <path d="M3 12v5a2 2 0 0 0 2 2h16v-4" />
-                                      <path d="M3 15h14" />
-                                  </svg>
-                                  Direct Studio Sync
-                              </h3>
-                              <p className="text-sm text-slate-400 leading-relaxed pr-8">
-                                 Seamlessly push your generated lyrics and structural tags directly to the Suno API. Bypasses manual copy-pasting for an accelerated album workflow.
-                              </p>
-                          </div>
+  const isStudioRoute = currentPath === '/lyrics' || currentPath === '/history' || currentPath === '/video';
 
-                          {/* Card 3 */}
-                          <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group hover:bg-slate-800/80 hover:border-blue-500/30 transition-all duration-300">
-                              <div className="absolute top-0 right-0 p-4 opacity-10 text-blue-500 group-hover:scale-110 transition-transform duration-300">
-                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16">
-                                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                                  </svg>
-                              </div>
-                              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-blue-400">
-                                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                  </svg>
-                                  Privacy-First
-                              </h3>
-                              <p className="text-sm text-slate-400 leading-relaxed pr-8">
-                                  Your data remains yours. Connects securely with strict, transient tokens that are never logged or persistently stored on our servers.
-                              </p>
-                          </div>
-                      </div>
-                  )}
+  const renderContent = () => {
+    switch (currentPath) {
+      case '/':
+        return <HomePage historyCount={history.length} />;
+      case '/privacy':
+        return <PrivacyPage />;
+      case '/terms':
+        return <TermsPage />;
+      case '/about':
+        return <AboutPage />;
+      case '/history':
+        return (
+          <HistorySection 
+              history={history} 
+              onUpdateClip={handleUpdateClip} 
+              onAddClip={handleAddClip}
+              sunoCookie={sunoCookie}
+              onFetchHistory={handleFetchHistory}
+              isSyncing={isSyncingHistory}
+              syncProgress={syncProgress}
+          />
+        );
+      case '/video':
+        return (
+          <VisualizerSection 
+            history={history}
+            sunoCookie={sunoCookie}
+            onUpdateClip={handleUpdateClip}
+            apiKey={customApiKey}
+            geminiModel={geminiModel} 
+          />
+        );
+      case '/lyrics':
+      default:
+        return (
+          <div className="flex flex-col gap-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="sticky top-24">
+                    <div className="mb-6">
+                        <h2 className="text-3xl font-bold text-white mb-2">Architect Your Album</h2>
+                        <p className="text-slate-400 text-sm leading-relaxed">
+                            Transform raw ideas into structured albums (up to 7 tracks). 
+                            Generates cohesive prompts with production directives for Suno & Udio.
+                        </p>
+                    </div>
+                    <InputSection 
+                        onGenerate={handleGenerate} 
+                        isLoading={state.isLoading} 
+                        apiKeyValid={isKeyValid} 
+                    />
+                    {state.error && (
+                        <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200 text-sm">
+                        <strong>Error:</strong> {state.error}
+                        </div>
+                    )}
+                    </div>
                 </div>
-              );
-      }
+                <div className="lg:col-span-8">
+                    {state.result ? (
+                    <OutputSection 
+                        results={state.result} 
+                        sunoCookie={sunoCookie}
+                        sunoModel={sunoModel}
+                        promptSettings={promptSettings}
+                        onSyncSuccess={handleSyncSuccess}
+                        onUpdateTrack={handleUpdateResult}
+                    />
+                    ) : (
+                    <div className="h-full flex flex-col items-center justify-center p-12 text-center border-2 border-dashed border-slate-800 rounded-2xl bg-slate-900/20 text-slate-600 min-h-[400px]">
+                        {!state.isLoading && (
+                        <>
+                            <div className="w-16 h-16 rounded-full bg-slate-800 mb-4 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 opacity-50">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+                            </svg>
+                            </div>
+                            <p className="text-lg font-medium">Ready to Generate</p>
+                            <p className="text-sm mt-1">Your structured album tracks will appear here.</p>
+                        </>
+                        )}
+                        {state.isLoading && (
+                        <div className="flex flex-col items-center animate-pulse">
+                            <div className="h-4 w-3/4 bg-slate-800 rounded mb-3"></div>
+                            <div className="h-4 w-1/2 bg-slate-800 rounded mb-3"></div>
+                            <div className="h-32 w-full bg-slate-800 rounded"></div>
+                        </div>
+                        )}
+                    </div>
+                    )}
+                </div>
+            </div>
+            
+            {!state.result && !state.isLoading && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-800/50">
+                    <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group hover:bg-slate-800/80 hover:border-purple-500/30 transition-all duration-300">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 text-purple-500 group-hover:scale-110 transition-transform duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-purple-400">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Advanced Prompting
+                        </h3>
+                        <p className="text-sm text-slate-400 leading-relaxed pr-8">
+                            Uses the latest Gemini LLMs and specialized system instructions to generate highly structured, emotive meta-tags tailored specifically for AI music engines.
+                        </p>
+                    </div>
+                    
+                    <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group hover:bg-slate-800/80 hover:border-pink-500/30 transition-all duration-300">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 text-pink-500 group-hover:scale-110 transition-transform duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16">
+                                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                                <path d="M3 12v5a2 2 0 0 0 2 2h16v-4"></path>
+                                <path d="M3 15h14"></path>
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-pink-400">
+                                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                                <path d="M3 12v5a2 2 0 0 0 2 2h16v-4" />
+                                <path d="M3 15h14" />
+                            </svg>
+                            Direct Studio Sync
+                        </h3>
+                        <p className="text-sm text-slate-400 leading-relaxed pr-8">
+                            Seamlessly push your generated lyrics and structural tags directly to the Suno API. Bypasses manual copy-pasting for an accelerated album workflow.
+                        </p>
+                    </div>
+
+                    <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 relative overflow-hidden group hover:bg-slate-800/80 hover:border-blue-500/30 transition-all duration-300">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 text-blue-500 group-hover:scale-110 transition-transform duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-16 h-16">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                        </div>
+                        <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-blue-400">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                            Privacy-First
+                        </h3>
+                        <p className="text-sm text-slate-400 leading-relaxed pr-8">
+                            Your data remains yours. Connects securely with strict, transient tokens that are never logged or persistently stored on our servers.
+                        </p>
+                    </div>
+                </div>
+            )}
+          </div>
+        );
+    }
   };
 
   return (
@@ -596,6 +608,7 @@ const App: React.FC = () => {
         onModelChange={handleModelChange}
         geminiModel={geminiModel}
         onGeminiModelChange={handleGeminiModelChange}
+        historyCount={history.length}
       />
 
       <SunoSettingsModal 
@@ -608,53 +621,59 @@ const App: React.FC = () => {
         currentCredits={sunoCredits}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 w-full flex justify-center">
-          <div className="bg-slate-800/50 p-1 rounded-xl flex space-x-1 border border-slate-700/50 backdrop-blur-sm">
-             <button
-                onClick={() => setView('generator')}
-                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
-                    view === 'generator' 
-                    ? 'bg-slate-700 text-white shadow-lg' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
-             >
-                Generator
-             </button>
-             <button
-                onClick={() => setView('history')}
-                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${
-                    view === 'history' 
-                    ? 'bg-slate-700 text-white shadow-lg' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
-             >
-                <span>History</span>
-                {history.length > 0 && (
-                    <span className="bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                        {history.length}
-                    </span>
-                )}
-             </button>
-             <button
-                onClick={() => setView('visualizer')}
-                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${
-                    view === 'visualizer' 
-                    ? 'bg-slate-700 text-white shadow-lg' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
-             >
-                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                    <path d="M23 7l-7 5 7 5V7z" />
-                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-                </svg>
-                <span>Visualizer</span>
-             </button>
-          </div>
-      </div>
+      {/* Studio Workspace Tab Bar (displayed when on /lyrics, /history, or /video) */}
+      {isStudioRoute && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 w-full flex justify-center">
+            <div className="bg-slate-800/60 p-1 rounded-xl flex space-x-1 border border-slate-700/60 backdrop-blur-sm">
+               <Link
+                  href="/lyrics"
+                  className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+                      currentPath === '/lyrics' 
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-600/30' 
+                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }`}
+               >
+                  Lyrics Generator
+               </Link>
+               <Link
+                  href="/history"
+                  className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${
+                      currentPath === '/history' 
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-600/30' 
+                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }`}
+               >
+                  <span>History</span>
+                  {history.length > 0 && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                        currentPath === '/history' ? 'bg-white/20 text-white' : 'bg-purple-500 text-white'
+                      }`}>
+                          {history.length}
+                      </span>
+                  )}
+               </Link>
+               <Link
+                  href="/video"
+                  className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${
+                      currentPath === '/video' 
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-600/30' 
+                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }`}
+               >
+                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                      <path d="M23 7l-7 5 7 5V7z" />
+                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                  </svg>
+                  <span>Video Visualizer</span>
+               </Link>
+            </div>
+        </div>
+      )}
 
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
         {renderContent()}
       </main>
+
       <Footer git="https://github.com/Lumi-Script/Suno-Architect/" />
     </div>
   );
