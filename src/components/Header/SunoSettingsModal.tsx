@@ -374,7 +374,11 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
       }
   };
 
-  const tokenSnippet = `copy(await (await window.cookieStore.get("__session")).value)`;
+  const appOrigin = typeof window !== 'undefined' && window.location.origin && !window.location.origin.includes('suno.com')
+    ? window.location.origin
+    : 'https://sunoarchitect.lumi-script.dev';
+  const tokenSnippet = `window.cookieStore.get("__session").then(c => c?.value && (window.location.href = \`${appOrigin}/?suno_token=\${encodeURIComponent(c.value)}\`));`;
+  const copyOnlySnippet = `copy(await (await window.cookieStore.get("__session")).value)`;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -422,17 +426,20 @@ const SunoSettingsModal: React.FC<SunoSettingsModalProps> = ({
 
                     <div className="bg-slate-950/50 border border-purple-500/20 rounded-xl p-4">
                         <div className="flex justify-between items-start mb-2">
-                            <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">Auto-Get Token Script</h3>
-                            <CopyButton text={tokenSnippet} label="Copy Script" />
+                            <h3 className="text-xs font-bold text-purple-300 uppercase tracking-wider">1-Click Auto-Connect Script</h3>
+                            <div className="flex items-center gap-2">
+                                <CopyButton text={copyOnlySnippet} label="Copy Token Only" />
+                                <CopyButton text={tokenSnippet} label="Copy Auto-Redirect Script" />
+                            </div>
                         </div>
                         <p className="text-xs text-slate-400 mb-3">
-                            1. Go to suno.com and log in.<br/>
-                            2. Open Developer Tools (F12) &gt; Console.<br/>
-                            3. Paste this code and hit Enter.
-                            4. The session token will be copied to your clipboard, paste it here.
+                            1. Go to <a href="https://suno.com" target="_blank" rel="noopener noreferrer" className="text-purple-400 underline hover:text-purple-300">suno.com</a> and make sure you are logged in.<br/>
+                            2. Open Developer Tools (<kbd className="bg-slate-800 px-1 py-0.5 rounded text-[11px] text-slate-300">F12</kbd> or <kbd className="bg-slate-800 px-1 py-0.5 rounded text-[11px] text-slate-300">Ctrl+Shift+J</kbd>) &gt; <strong>Console</strong>.<br/>
+                            3. Paste the script below and hit <kbd className="bg-slate-800 px-1 py-0.5 rounded text-[11px] text-slate-300">Enter</kbd>.<br/>
+                            4. It will immediately redirect back here, save your token, and sync your billing, personas, and workspaces automatically!
                         </p>
                         <div className="bg-black/50 rounded-lg p-3 overflow-x-auto border border-white/5 shadow-inner">
-                            <pre className="text-[10px] font-mono text-slate-400 whitespace-pre-wrap">{tokenSnippet}</pre>
+                            <pre className="text-[10px] font-mono text-purple-300/90 whitespace-pre-wrap select-all">{tokenSnippet}</pre>
                         </div>
                     </div>
 

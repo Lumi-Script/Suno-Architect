@@ -174,12 +174,35 @@ const App: React.FC = () => {
         }
     }).catch(() => {});
 
-    const savedCookie = localStorage.getItem('suno_cookie');
+    // Check if suno_token is passed in the URL parameters
+    let initialToken = '';
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('suno_token');
+      if (urlToken && urlToken.trim()) {
+        initialToken = urlToken.trim();
+        localStorage.setItem('suno_cookie', initialToken);
+        localStorage.setItem('suno_token', initialToken);
+
+        // Clean query parameter from address bar so token doesn't linger in URL
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('suno_token');
+        const cleanPath = cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : '') + cleanUrl.hash;
+        window.history.replaceState({}, '', cleanPath);
+      }
+    } catch (e) {
+      console.warn("Could not parse URL for suno_token:", e);
+    }
+
+    if (!initialToken) {
+      initialToken = localStorage.getItem('suno_cookie') || localStorage.getItem('suno_token') || '';
+    }
+
     const savedModel = localStorage.getItem('suno_model');
     
-    if (savedCookie) {
-      setSunoCookie(savedCookie);
-      getSunoBillingInfo(savedCookie).then((info) => {
+    if (initialToken) {
+      setSunoCookie(initialToken);
+      getSunoBillingInfo(initialToken).then((info) => {
           setSunoCredits(info.credits);
           if (info.customModels.length > 0) {
               setSunoModels(getCombinedSunoModels(info.customModels));
@@ -190,13 +213,13 @@ const App: React.FC = () => {
               console.warn("Could not fetch Suno billing info:", err);
           }
       });
-      fetchWorkspaces(savedCookie);
-      fetchPersonas(savedCookie);
+      fetchWorkspaces(initialToken);
+      fetchPersonas(initialToken);
       
       if (!historyFetchedRef.current) {
           historyFetchedRef.current = true;
           // Initial fetch with default limit
-          fetchAndMergeSunoHistory(savedCookie);
+          fetchAndMergeSunoHistory(initialToken);
       }
     }
     if (savedModel && savedModel !== 'chirp-bluejay') {
@@ -369,6 +392,7 @@ const App: React.FC = () => {
 
     if (cookie) {
       localStorage.setItem('suno_cookie', cookie);
+      localStorage.setItem('suno_token', cookie);
       getSunoBillingInfo(cookie).then((info) => {
           setSunoCredits(info.credits);
           if (info.customModels.length > 0) {
@@ -381,6 +405,7 @@ const App: React.FC = () => {
       fetchAndMergeSunoHistory(cookie);
     } else {
       localStorage.removeItem('suno_cookie');
+      localStorage.removeItem('suno_token');
       setSunoCredits(null);
     }
 
