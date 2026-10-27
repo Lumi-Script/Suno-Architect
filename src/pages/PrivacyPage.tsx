@@ -17,7 +17,7 @@ export const PrivacyPage: React.FC = () => {
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
-          <span>Google OAuth & Data Protection Compliant</span>
+          <span>Privacy & Data Protection Compliant</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
           Privacy Policy
@@ -45,58 +45,40 @@ export const PrivacyPage: React.FC = () => {
           Welcome to <strong>Suno Architect</strong> ("we", "us", or "our"), accessible at <strong>https://sunoarchitect.lumi-script.dev</strong>. Suno Architect is an open-source, web-based creative suite that assists music producers, creators, and songwriters in generating structured musical prompts, lyrical compositions, and audio-reactive video visualizers for AI music engines, specifically Suno AI and Udio.
         </p>
         <p className="leading-relaxed text-sm">
-          This Privacy Policy explains how we handle data when you access or use Suno Architect, particularly when you choose to utilize our Google OAuth integration or connect your third-party service credentials.
+          This Privacy Policy explains how we handle data when you access or use Suno Architect, particularly when you choose to connect your third-party API keys or service credentials.
         </p>
       </section>
 
-      {/* Section 2: Google OAuth & Limited Use */}
+      {/* Section 2: Gemini API Keys & Bring-Your-Own-Key */}
       <section className="space-y-4 p-6 bg-slate-900/60 border border-slate-800 rounded-2xl">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <svg viewBox="0 0 24 24" className="w-5 h-5">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-purple-400">
+            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <path d="M7 7h10v10H7z" />
           </svg>
-          2. Google OAuth Integration & Limited Use Disclosure
+          2. Gemini API Keys & Bring-Your-Own-Key (BYOK) Architecture
         </h2>
         
         <div className="space-y-3 text-sm leading-relaxed">
           <p>
-            Suno Architect provides an optional <strong>"Sign in with Google"</strong> feature powered by Google OAuth 2.0. This allows users to authenticate and leverage Google's Generative Language (Gemini) models directly without needing to manually generate and paste an API key.
+            Suno Architect operates on a strict <strong>Bring-Your-Own-Key (BYOK)</strong> model. We do not use Google OAuth or request access to your Google account identity, personal emails, drive documents, or contacts.
           </p>
 
-          <h3 className="font-semibold text-white mt-4">A. OAuth Scopes Requested</h3>
+          <h3 className="font-semibold text-white mt-4">A. API Key Handling</h3>
           <p>
-            We specifically request access exclusively to the following scope:
+            When you enter a Google Gemini API Key or Vertex AI API Key in Suno Architect:
           </p>
-          <div className="p-3 bg-slate-950 font-mono text-xs text-purple-300 rounded-lg border border-slate-800 break-all">
-            https://www.googleapis.com/auth/generative-language.retriever
-          </div>
-          <p>
-            This scope allows the application to send lyrical generation prompts to Google's Gemini models on your behalf.
-          </p>
-
-          <h3 className="font-semibold text-white mt-4">B. What Data We Access, Collect, and Store</h3>
           <ul className="list-disc pl-5 space-y-2 text-slate-300">
             <li>
-              <strong>No Personal Profile Data:</strong> We do <em>not</em> access, read, or store your Gmail emails, Google Drive files, Google Contacts, Google Calendar, or personal identity information.
+              <strong>Client-Side Storage Only:</strong> Your API key is stored exclusively in your browser's private local storage (<code className="text-purple-300 bg-slate-950 px-1 py-0.5 rounded">localStorage.getItem('gemini_api_key')</code>). It is never sent to, logged by, or saved on any servers operated by Suno Architect.
             </li>
             <li>
-              <strong>Client-Side Token Storage:</strong> The OAuth access token returned by Google is stored solely in your local browser storage (<code className="text-purple-300 bg-slate-950 px-1 py-0.5 rounded">localStorage.getItem('google_access_token')</code>). It is never sent to or saved on any backend servers operated by Suno Architect.
+              <strong>Direct End-to-End API Calls:</strong> All generative requests are dispatched directly from your browser to Google's official Gemini endpoints (<code className="text-purple-300 bg-slate-950 px-1 py-0.5 rounded">https://generativelanguage.googleapis.com</code> or Vertex AI endpoints).
             </li>
             <li>
-              <strong>Direct API Communication:</strong> Prompt generation queries are sent directly from your browser to Google's official Gemini endpoints (<code className="text-purple-300 bg-slate-950 px-1 py-0.5 rounded">https://generativelanguage.googleapis.com</code>).
+              <strong>No Account Linkage:</strong> Suno Architect does not link your API usage to any user account or identity.
             </li>
           </ul>
-
-          {/* Mandatory Google Limited Use Statement */}
-          <div className="mt-4 p-4 rounded-xl bg-purple-900/30 border border-purple-500/40 text-purple-100 text-sm">
-            <h4 className="font-bold text-white mb-1">Google API Services User Data Policy Compliance</h4>
-            <p className="leading-relaxed">
-              <strong>Suno Architect's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="underline text-purple-300 hover:text-white font-medium">Google API Services User Data Policy</a>, including the Limited Use requirements.</strong>
-            </p>
-          </div>
         </div>
       </section>
 
@@ -120,7 +102,7 @@ export const PrivacyPage: React.FC = () => {
 
       {/* Section 4: Data Retention & User Deletion Rights */}
       <section className="space-y-4">
-        <h2 className="text-xl font-bold text-white">4. Data Retention, Deletion & Revoking Permissions</h2>
+        <h2 className="text-xl font-bold text-white">4. Data Retention & User Deletion Rights</h2>
         <div className="space-y-3 text-sm leading-relaxed">
           <p>
             Because Suno Architect does not maintain a server-side user database, your data remains completely under your personal control.
@@ -129,28 +111,10 @@ export const PrivacyPage: React.FC = () => {
           <h3 className="font-semibold text-white mt-2">How to Delete Your Data:</h3>
           <ul className="list-disc pl-5 space-y-2 text-slate-300">
             <li>
-              <strong>Sign Out in App:</strong> You can disconnect your Google account at any time by opening the API settings in the header and clicking <strong>"Sign Out of Google"</strong>. This immediately purges the token from your browser's memory.
+              <strong>Remove Key in App:</strong> You can remove your saved API key at any time by opening the API key input dropdown in the header, clearing the text field, and clicking Save.
             </li>
             <li>
               <strong>Clear Browser Storage:</strong> Clearing your browser's site data, cache, and IndexedDB for <code className="text-purple-300 bg-slate-900 px-1 py-0.5 rounded">sunoarchitect.lumi-script.dev</code> completely removes all prompt drafts, generated history, and stored keys.
-            </li>
-            <li>
-              <strong>Revoke via Google Account:</strong> You can revoke Suno Architect's access to your Google account at any time through Google's official third-party permission manager:
-              <div className="mt-2">
-                <a
-                  href="https://myaccount.google.com/permissions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-purple-300 hover:text-white rounded-lg text-xs font-semibold border border-slate-700 transition-colors"
-                >
-                  <span>Manage Google Third-Party Permissions</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                    <polyline points="15 3 21 3 21 9" />
-                    <line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
-                </a>
-              </div>
             </li>
           </ul>
         </div>

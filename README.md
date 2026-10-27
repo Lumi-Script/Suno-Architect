@@ -126,8 +126,7 @@ Configure your credentials in the header via the **API Key** dialog:
 - **Supported Auth Modes**:
   1. **Google AI Studio Key**: Standard API key from [Google AI Studio](https://aistudio.google.com/api-keys).
   2. **Vertex AI API Key**: Built-in support for Vertex AI keys with automatic project ID discovery and global endpoint fallback routing.
-  3. **Sign in with Google (OAuth)**: Client-side OAuth flow for instant access without generating manual keys.
-  4. **Google AI Studio Embedded**: Auto-detects session keys when running inside AI Studio workspaces.
+  3. **Google AI Studio Embedded**: Auto-detects session keys when running inside AI Studio workspaces.
 
 ### Suno AI Models
 - `V6` (`chirp-hawk`)
@@ -215,7 +214,7 @@ The output will be placed in the `dist/` directory.
 
 ## 🔒 Privacy & Security
 
-- **Client-Side Only**: All API tokens (Gemini API keys, Vertex keys, Google OAuth tokens, and Suno tokens) are stored exclusively in your browser's `localStorage` or `IndexedDB`.
+- **Client-Side Only**: All API tokens (Gemini API keys, Vertex keys, and Suno tokens) are stored exclusively in your browser's `localStorage` or `IndexedDB`.
 - **Zero Logging**: Prompts, audio files, uploaded context documents, and Suno history are never logged, stored, or tracked on external servers.
 - **Direct Edge Relaying**: The Cloudflare Worker functions as a passthrough proxy and does not inspect, persist, or collect authentication headers or payload data.
 

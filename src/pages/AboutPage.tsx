@@ -55,7 +55,7 @@ export const AboutPage: React.FC = () => {
           </p>
           <ul className="list-disc pl-5 space-y-2 text-slate-300">
             <li>
-              <strong>Google OAuth Scopes:</strong> We request only the <code className="text-purple-300 bg-slate-950 px-1 py-0.5 rounded">generative-language.retriever</code> scope. This is strictly utilized to communicate with Google's Gemini models to write lyrics and expand musical prompts. We never access your emails, personal contacts, Google Drive files, or user identity.
+              <strong>Bring-Your-Own-Key (BYOK):</strong> Suno Architect connects directly to Google Gemini using your personal API key. We do not use Google OAuth and never access your Google accounts, emails, personal contacts, Google Drive files, or user identity.
             </li>
             <li>
               <strong>Client-Side First:</strong> All your prompt drafts, generated track history, and audio visualizer presets are persisted in your personal browser storage (LocalStorage & IndexedDB). We do not run a tracking database.

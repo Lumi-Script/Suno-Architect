@@ -48,15 +48,15 @@ const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
               <ul className="space-y-3">
                   <li className="flex gap-3">
                       <div className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-purple-400"></div>
-                      <p><strong>Google OAuth & Data Request:</strong> We offer a "Sign in with Google" feature that requests access for the Gemini API scopes. We specifically request this to communicate with Google's Gemini LLMs to write and expand lyrical prompts on your behalf completely free of charge. We do not use this access for any other reasons, and do not access files, emails, or personal information.</p>
+                      <p><strong>Bring-Your-Own-Key (BYOK):</strong> Suno Architect connects directly to Google Gemini using your personal API key. We do not use Google OAuth and do not access your Google accounts, emails, personal contacts, Google Drive files, or user identity.</p>
                   </li>
                   <li className="flex gap-3">
                       <div className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-purple-400"></div>
-                      <p><strong>Local Processing First:</strong> When you provide a Google Auth token or an API key, we utilize it only to relay prompts transiently to the generative API.</p>
+                      <p><strong>Local Processing First:</strong> When you provide an API key, we utilize it only to relay prompts transiently to the generative API directly from your browser.</p>
                   </li>
                   <li className="flex gap-3">
                       <div className="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-purple-400"></div>
-                      <p><strong>Visibility:</strong> No sign in is strictly required to view the application and its features. However, to generate the intricate LLM prompt layouts, an API token or a Google Sign In allows the app to communicate effectively.</p>
+                      <p><strong>Visibility:</strong> No sign in is strictly required to view the application and its features. However, to generate the intricate LLM prompt layouts, a Gemini API key allows the app to communicate effectively.</p>
                   </li>
               </ul>
           </div>

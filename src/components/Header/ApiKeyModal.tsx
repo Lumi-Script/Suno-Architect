@@ -26,7 +26,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
           <div className="space-y-3">
             <h3 className="text-2xl font-bold text-white tracking-tight">API Key Required</h3>
             <p className="text-slate-400 text-sm leading-relaxed">
-              To utilize the Gemini AI architect, you must configure your API Key or sign in with Google. This key is stored locally in your browser.
+              To utilize the Gemini AI architect, you must configure your API Key. This key is stored locally in your browser.
             </p>
             <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-800">
                 <p className="text-slate-500 text-xs">

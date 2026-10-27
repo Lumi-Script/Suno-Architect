@@ -30,9 +30,7 @@ const withRetry = async <T>(operation: () => Promise<T>, maxRetries = 3): Promis
  * We extract that project ID from the body, cache it, and retry the request at the global endpoint.
  */
 export const createCustomFetch = (
-  isVertex: boolean,
-  isOAuthToken: boolean,
-  googleToken: string | null
+  isVertex: boolean
 ) => {
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const requestUrl = input instanceof Request ? input.url : input.toString();
@@ -45,11 +43,6 @@ export const createCustomFetch = (
       } catch (e) {
         console.warn("Could not read input body stream:", e);
       }
-    }
-
-    if (isOAuthToken && googleToken) {
-      headers.delete('x-goog-api-key');
-      headers.set('Authorization', `Bearer ${googleToken}`);
     }
 
     const requestOptions: RequestInit = {
@@ -111,19 +104,17 @@ export const generateSunoPrompt = async (
   numTracks: number = 1
 ): Promise<ParsedSunoOutput[]> => {
   const apiKey = customApiKey || import.meta.env?.VITE_API_KEY; 
-  const googleToken = localStorage.getItem('google_access_token');
 
-  if (!apiKey && !googleToken) {
-    throw new Error("API Key or Google Auth missing.");
+  if (!apiKey) {
+    throw new Error("API Key missing.");
   }
 
-  const isOAuthToken = !apiKey && !!googleToken;
   const isVertex = localStorage.getItem('is_vertex_key') === 'true';
 
-  const customFetch = createCustomFetch(isVertex, isOAuthToken, googleToken);
+  const customFetch = createCustomFetch(isVertex);
   
   const ai = new GoogleGenAI({ 
-      apiKey: apiKey || "OAUTH", 
+      apiKey, 
       vertexai: isVertex,
       httpOptions: { fetch: customFetch } 
   });
@@ -286,19 +277,17 @@ export const suggestVisualizerSettings = async (
 ): Promise<{ font: string, activeColor: string, inactiveColor: string }> => {
     
     const apiKey = customApiKey || import.meta.env?.VITE_API_KEY;
-    const googleToken = localStorage.getItem('google_access_token');
   
-    if (!apiKey && !googleToken) {
-      throw new Error("API Key or Google Auth missing.");
+    if (!apiKey) {
+      throw new Error("API Key missing.");
     }
   
-    const isOAuthToken = !apiKey && !!googleToken;
     const isVertex = localStorage.getItem('is_vertex_key') === 'true';
   
-    const customFetch = createCustomFetch(isVertex, isOAuthToken, googleToken);
+    const customFetch = createCustomFetch(isVertex);
   
     const ai = new GoogleGenAI({ 
-        apiKey: apiKey || "OAUTH", 
+        apiKey, 
         vertexai: isVertex,
         httpOptions: { fetch: customFetch }
     });

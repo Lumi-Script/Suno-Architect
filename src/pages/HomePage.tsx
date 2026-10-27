@@ -559,19 +559,19 @@ export const HomePage: React.FC<HomePageProps> = ({ historyCount = 0 }) => {
               </svg>
             </summary>
             <p className="text-slate-300 text-sm mt-3 leading-relaxed">
-              Yes, Suno Architect is 100% free and open-source. You can bring your own Google Gemini API key or sign in with Google OAuth to access Google's free generative language tier. You do not pay any subscription fees to Suno Architect.
+              Yes, Suno Architect is 100% free and open-source. You can bring your own Google Gemini API key to access Google's free generative language tier. You do not pay any subscription fees to Suno Architect.
             </p>
           </details>
 
           <details className="group bg-slate-900/60 border border-slate-800 rounded-xl p-5 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
             <summary className="flex items-center justify-between text-base font-bold text-white group-open:text-purple-400 transition-colors">
-              <span>How does Google Sign-In / OAuth work in this application?</span>
+              <span>How do API keys work in this application?</span>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </summary>
             <p className="text-slate-300 text-sm mt-3 leading-relaxed">
-              When you click "Sign in with Google", Suno Architect requests permission only for the generative language API scope. We use this authorization solely to make prompt requests to Google's Gemini models directly from your client browser. Your personal account details, emails, and profile files are never accessed or stored. You can disconnect at any time in the app or via Google Account Permissions.
+              Suno Architect operates on a Bring-Your-Own-Key (BYOK) model. You provide your own Gemini API key (from Google AI Studio or Vertex AI), which is stored solely in your browser's private local storage. Requests are dispatched directly from your browser to Google's Gemini endpoints, and your key is never saved on external servers.
             </p>
           </details>
 

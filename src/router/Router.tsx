@@ -32,8 +32,8 @@ const ROUTE_METADATA: Record<string, RouteMetadata> = {
     description: 'Manage and sync your Suno clips, lyric drafts, stems, audio playback, and export your entire prompt history safely stored in your browser.',
   },
   '/privacy': {
-    title: 'Privacy Policy & Google OAuth Compliance | Suno Architect',
-    description: 'Official Privacy Policy for Suno Architect, detailing our strict client-side data architecture, Google OAuth compliance, and Limited Use disclosures.',
+    title: 'Privacy Policy & Data Protection | Suno Architect',
+    description: 'Official Privacy Policy for Suno Architect, detailing our strict client-side data architecture and zero remote data retention model.',
   },
   '/terms': {
     title: 'Terms of Service & Acceptable Use | Suno Architect',

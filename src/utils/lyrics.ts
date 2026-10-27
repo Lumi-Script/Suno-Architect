@@ -270,11 +270,9 @@ export const groupLyricsByLines = async (
   if (!key) return fallback || [];
 
   const isVertex = localStorage.getItem('is_vertex_key') === 'true';
-  const googleToken = localStorage.getItem('google_access_token');
-  const isOAuthToken = !key && !!googleToken;
-  const customFetch = createCustomFetch(isVertex, isOAuthToken, googleToken);
+  const customFetch = createCustomFetch(isVertex);
   const ai = new GoogleGenAI({ 
-    apiKey: key || "OAUTH", 
+    apiKey: key, 
     vertexai: isVertex,
     httpOptions: { fetch: customFetch }
   });

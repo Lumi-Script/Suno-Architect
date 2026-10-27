@@ -68,7 +68,7 @@ const Footer: React.FC<FooterProps> = ({ git = DEFAULT_GIT_REPO }) => {
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href="/privacy" className="text-slate-400 hover:text-white transition-colors">
-                  Privacy Policy (Google OAuth)
+                  Privacy Policy
                 </Link>
               </li>
               <li>
@@ -80,21 +80,6 @@ const Footer: React.FC<FooterProps> = ({ git = DEFAULT_GIT_REPO }) => {
                 <Link href="/about" className="text-slate-400 hover:text-white transition-colors">
                   About & Data Usage
                 </Link>
-              </li>
-              <li>
-                <a 
-                  href="https://developers.google.com/terms/api-services-user-data-policy" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-slate-400 hover:text-white transition-colors flex items-center gap-1"
-                >
-                  <span>Google Limited Use</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-slate-500">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                    <polyline points="15 3 21 3 21 9" />
-                    <line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
-                </a>
               </li>
               <li>
                 <a 
@@ -129,10 +114,6 @@ const Footer: React.FC<FooterProps> = ({ git = DEFAULT_GIT_REPO }) => {
             <span>•</span>
             <a href={git} target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors">
               GitHub
-            </a>
-            <span>•</span>
-            <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors">
-              Google Permissions
             </a>
           </div>
         </div>
