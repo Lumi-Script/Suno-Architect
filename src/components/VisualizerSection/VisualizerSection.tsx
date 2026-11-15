@@ -88,6 +88,11 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({
                         onFileUpload={handlers.handleFileUpload}
                         onAudioUpload={handlers.handleAudioUpload}
                         handleImageError={handlers.handleImageError}
+                        coverX={state.coverX}
+                        setCoverX={setters.setCoverX}
+                        coverY={state.coverY}
+                        setCoverY={setters.setCoverY}
+                        onResetCoverPosition={handlers.resetCoverPosition}
                      />
                      
                      <AiControlsCard 
@@ -134,6 +139,12 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({
                         canvasRef={refs.canvasRef}
                         aspectRatio={state.aspectRatio}
                         isPreparing={state.isPreparing}
+                        visualMode={state.visualMode}
+                        coverX={state.coverX}
+                        setCoverX={setters.setCoverX}
+                        coverY={state.coverY}
+                        setCoverY={setters.setCoverY}
+                        onResetCoverPosition={handlers.resetCoverPosition}
                      />
                      
                      <VisualizerSettings 
@@ -144,6 +155,8 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({
                         verticalOffset={state.verticalOffset} setVerticalOffset={setters.setVerticalOffset}
                         inactiveOpacity={state.inactiveOpacity} setInactiveOpacity={setters.setInactiveOpacity}
                         visualMode={state.visualMode}
+                        coverX={state.coverX} setCoverX={setters.setCoverX}
+                        coverY={state.coverY} setCoverY={setters.setCoverY}
                         qt6Style={state.qt6Style} setQt6Style={setters.setQt6Style}
                         qt6BarCount={state.qt6BarCount} setQt6BarCount={setters.setQt6BarCount}
                         qt6Sensitivity={state.qt6Sensitivity} setQt6Sensitivity={setters.setQt6Sensitivity}
@@ -159,6 +172,8 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({
                             setters.setFontFamily('Inter, sans-serif');
                             setters.setSmoothingFactor(0.1);
                             setters.setVerticalOffset(0);
+                            setters.setCoverX(0.5);
+                            setters.setCoverY(0.5);
                             setters.setQt6Style('wave');
                             setters.setQt6BarCount(64);
                             setters.setQt6Sensitivity(1.0);

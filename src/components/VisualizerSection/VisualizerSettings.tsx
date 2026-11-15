@@ -30,6 +30,10 @@ interface VisualizerSettingsProps {
     setExportFormat?: (val: 'mp4' | 'webm') => void;
     colorSpaceFix?: boolean;
     setColorSpaceFix?: (val: boolean) => void;
+    coverX?: number;
+    setCoverX?: (val: number) => void;
+    coverY?: number;
+    setCoverY?: (val: number) => void;
     
     onReset: () => void;
     onAiSuggest?: () => Promise<void>;
@@ -39,7 +43,8 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
     fontFamily, setFontFamily, activeColor, setActiveColor, inactiveColor, setInactiveColor,
     smoothingFactor, setSmoothingFactor, verticalOffset, setVerticalOffset, inactiveOpacity, setInactiveOpacity,
     visualMode, qt6Style, setQt6Style, qt6BarCount, setQt6BarCount, qt6Sensitivity, setQt6Sensitivity, 
-        videoBitrate, setVideoBitrate,     videoBitrateMode, setVideoBitrateMode,     exportFormat, setExportFormat, colorSpaceFix, setColorSpaceFix,
+    videoBitrate, setVideoBitrate, videoBitrateMode, setVideoBitrateMode, exportFormat, setExportFormat, colorSpaceFix, setColorSpaceFix,
+    coverX = 0.5, setCoverX, coverY = 0.5, setCoverY,
     onReset, onAiSuggest
 }) => {
   const [isSuggesting, setIsSuggesting] = React.useState(false);
@@ -126,7 +131,7 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
                 </div>
             </div>
             <div className="col-span-2 md:col-span-1">
-                <label className="text-[10px] text-slate-500 block mb-1">Vertical Position</label>
+                <label className="text-[10px] text-slate-500 block mb-1">Lyrics Vertical Position</label>
                 <input 
                 type="range" 
                 min="-0.4" 
@@ -141,6 +146,31 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
                     <span>Bottom</span>
                 </div>
             </div>
+
+            {visualMode === 'cover' && (
+                <div className="col-span-2 md:col-span-1">
+                    <div className="flex justify-between items-center mb-1">
+                        <label className="text-[10px] text-slate-500">Cover Vertical Position</label>
+                        <span className="text-[9px] text-slate-400 font-mono">
+                            {coverY === 0 ? 'Top' : coverY === 0.5 ? 'Center' : coverY === 1 ? 'Bottom' : `${Math.round(coverY * 100)}%`}
+                        </span>
+                    </div>
+                    <input 
+                    type="range" 
+                    min="0" 
+                    max="1" 
+                    step="0.01" 
+                    value={coverY} 
+                    onChange={(e) => setCoverY && setCoverY(parseFloat(e.target.value))}
+                    className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    />
+                    <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span role="button" className="hover:text-purple-400 cursor-pointer" onClick={() => setCoverY && setCoverY(0)}>Top</span>
+                        <span role="button" className="hover:text-purple-400 cursor-pointer" onClick={() => setCoverY && setCoverY(0.5)}>Center</span>
+                        <span role="button" className="hover:text-purple-400 cursor-pointer" onClick={() => setCoverY && setCoverY(1)}>Bottom</span>
+                    </div>
+                </div>
+            )}
             
             {/* Export Settings */}
             <div className="col-span-2 md:col-span-1">

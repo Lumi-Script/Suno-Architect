@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { ParsedSunoOutput, AlignedWord, FileContext } from "../types";
+import { ParsedSunoOutput, AlignedWord, FileContext, VertexPriority } from "../types";
 import { GET_STRICT_OUTPUT_SUFFIX } from "../constants";
 
 const withRetry = async <T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> => {
@@ -30,11 +30,28 @@ const withRetry = async <T>(operation: () => Promise<T>, maxRetries = 3): Promis
  * We extract that project ID from the body, cache it, and retry the request at the global endpoint.
  */
 export const createCustomFetch = (
-  isVertex: boolean
+  isVertex: boolean,
+  vertexPriority?: VertexPriority
 ) => {
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const requestUrl = input instanceof Request ? input.url : input.toString();
-    const headers = new Headers(init?.headers);
+    const headers = new Headers(input instanceof Request ? input.headers : init?.headers);
+    if (init?.headers && input instanceof Request) {
+      new Headers(init.headers).forEach((val, key) => headers.set(key, val));
+    }
+
+    const isVertexActive = isVertex || (typeof localStorage !== 'undefined' && localStorage.getItem('is_vertex_key') === 'true');
+    const priority = vertexPriority || (typeof localStorage !== 'undefined' ? (localStorage.getItem('vertex_priority') as VertexPriority) : null) || 'standard';
+
+    if (isVertexActive) {
+      if (priority === 'priority' || priority === 'flex') {
+        headers.set('X-Vertex-AI-LLM-Request-Type', 'shared');
+        headers.set('X-Vertex-AI-LLM-Shared-Request-Type', priority);
+      } else if (priority === 'standard') {
+        headers.delete('X-Vertex-AI-LLM-Request-Type');
+        headers.delete('X-Vertex-AI-LLM-Shared-Request-Type');
+      }
+    }
 
     let body = init?.body;
     if (!body && input instanceof Request && input.body) {
@@ -51,6 +68,15 @@ export const createCustomFetch = (
       ...(body ? { body } : {})
     };
 
+    const toProxyUrl = (url: string) => {
+      // In browser environment, proxy aiplatform.googleapis.com through /vertex-api
+      // to prevent CORS preflight rejection when custom routing headers (priority/flex) are attached
+      if (typeof window !== 'undefined' && url.startsWith('https://aiplatform.googleapis.com')) {
+        return url.replace('https://aiplatform.googleapis.com', '/vertex-api');
+      }
+      return url;
+    };
+
     if (isVertex && requestUrl.includes('publishers/google/models/')) {
       const urlParts = requestUrl.split('publishers/google/models/');
       const modelAndMethod = urlParts[1];
@@ -58,7 +84,7 @@ export const createCustomFetch = (
       // If we previously extracted and cached the project ID, attempt to use it directly
       const cachedProjectId = localStorage.getItem('vertex_project_id');
       if (cachedProjectId) {
-        const globalUrl = `https://aiplatform.googleapis.com/v1beta1/projects/${cachedProjectId}/locations/global/publishers/google/models/${modelAndMethod}`;
+        const globalUrl = toProxyUrl(`https://aiplatform.googleapis.com/v1beta1/projects/${cachedProjectId}/locations/global/publishers/google/models/${modelAndMethod}`);
         const cachedRes = await fetch(globalUrl, requestOptions);
         if (cachedRes.ok) {
           return cachedRes;
@@ -68,7 +94,7 @@ export const createCustomFetch = (
       }
 
       // Call the usual API to allow Vertex AI to return the error containing the project ID
-      const response = await fetch(requestUrl, requestOptions);
+      const response = await fetch(toProxyUrl(requestUrl), requestOptions);
       if (response.ok) {
         return response;
       }
@@ -81,7 +107,7 @@ export const createCustomFetch = (
         if (match && match[1]) {
           const extractedProjectId = match[1];
           localStorage.setItem('vertex_project_id', extractedProjectId);
-          const globalUrl = `https://aiplatform.googleapis.com/v1beta1/projects/${extractedProjectId}/locations/global/publishers/google/models/${modelAndMethod}`;
+          const globalUrl = toProxyUrl(`https://aiplatform.googleapis.com/v1beta1/projects/${extractedProjectId}/locations/global/publishers/google/models/${modelAndMethod}`);
           return await fetch(globalUrl, requestOptions);
         }
       } catch (err) {
@@ -91,7 +117,7 @@ export const createCustomFetch = (
       return response;
     }
 
-    return fetch(requestUrl, requestOptions);
+    return fetch(toProxyUrl(requestUrl), requestOptions);
   };
 };
 
@@ -101,7 +127,8 @@ export const generateSunoPrompt = async (
   systemInstruction?: string,
   geminiModel: string = "gemini-3.8-flash",
   contextFiles: FileContext[] = [],
-  numTracks: number = 1
+  numTracks: number = 1,
+  customVertexPriority?: VertexPriority
 ): Promise<ParsedSunoOutput[]> => {
   const apiKey = customApiKey || import.meta.env?.VITE_API_KEY; 
 
@@ -110,8 +137,9 @@ export const generateSunoPrompt = async (
   }
 
   const isVertex = localStorage.getItem('is_vertex_key') === 'true';
+  const vertexPriority = customVertexPriority || (localStorage.getItem('vertex_priority') as VertexPriority) || 'standard';
 
-  const customFetch = createCustomFetch(isVertex);
+  const customFetch = createCustomFetch(isVertex, vertexPriority);
   
   const ai = new GoogleGenAI({ 
       apiKey, 
@@ -273,7 +301,8 @@ export const suggestVisualizerSettings = async (
     customApiKey?: string,
     geminiModel: string = "gemini-3.8-flash",
     base64Image?: string,
-    imageMimeType?: string
+    imageMimeType?: string,
+    customVertexPriority?: VertexPriority
 ): Promise<{ font: string, activeColor: string, inactiveColor: string }> => {
     
     const apiKey = customApiKey || import.meta.env?.VITE_API_KEY;
@@ -283,8 +312,9 @@ export const suggestVisualizerSettings = async (
     }
   
     const isVertex = localStorage.getItem('is_vertex_key') === 'true';
+    const vertexPriority = customVertexPriority || (localStorage.getItem('vertex_priority') as VertexPriority) || 'standard';
   
-    const customFetch = createCustomFetch(isVertex);
+    const customFetch = createCustomFetch(isVertex, vertexPriority);
   
     const ai = new GoogleGenAI({ 
         apiKey, 

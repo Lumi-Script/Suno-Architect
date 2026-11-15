@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { SUNO_MODEL_MAPPINGS } from '../../constants';
 import { GeminiModelSelector } from './GeminiModelSelector';
 import { Link, useRouter } from '../../router/Router';
+import { VertexPriority } from '../../types';
 
 interface HeaderProps {
   onKeyUpdate: (key: string) => void;
@@ -36,6 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [manualKey, setManualKey] = useState('');
   const [isVertexKey, setIsVertexKey] = useState(false);
+  const [vertexPriority, setVertexPriority] = useState<VertexPriority>('standard');
 
   const getEnvApiKey = () => {
     try {
@@ -89,14 +91,18 @@ export const Header: React.FC<HeaderProps> = ({
         setIsAiStudio(false);
         const stored = localStorage.getItem('gemini_api_key');
         const vertexStored = localStorage.getItem('is_vertex_key') === 'true';
+        const priorityStored = (localStorage.getItem('vertex_priority') as VertexPriority) || 'standard';
         if (stored) {
           isValid = true;
           setManualKey(stored);
           setIsVertexKey(vertexStored);
+          setVertexPriority(priorityStored);
           keyToSet = stored;
         } else if (getEnvApiKey()) {
           // 3. Check Environment Variable
           isValid = true;
+          setIsVertexKey(vertexStored);
+          setVertexPriority(priorityStored);
         }
       }
 
@@ -106,7 +112,32 @@ export const Header: React.FC<HeaderProps> = ({
     };
     
     checkEnv();
+    window.addEventListener('storage', checkEnv);
+    window.addEventListener('gemini_key_updated', checkEnv);
+    return () => {
+      window.removeEventListener('storage', checkEnv);
+      window.removeEventListener('gemini_key_updated', checkEnv);
+    };
   }, [onKeyUpdate, onValidationChange]);
+
+  const handleVertexToggle = (checked: boolean) => {
+    setIsVertexKey(checked);
+    localStorage.setItem('is_vertex_key', checked.toString());
+    localStorage.removeItem('vertex_project_id');
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  const handlePriorityChange = (opt: VertexPriority) => {
+    setVertexPriority(opt);
+    localStorage.setItem('vertex_priority', opt);
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  const handleModelChange = (model: string) => {
+    onGeminiModelChange(model);
+    localStorage.setItem('gemini_model', model);
+    window.dispatchEvent(new Event('storage'));
+  };
 
   const handleAction = async () => {
     if (isAiStudio) {
@@ -131,6 +162,11 @@ export const Header: React.FC<HeaderProps> = ({
     if (trimmed) {
       localStorage.setItem('gemini_api_key', trimmed);
       localStorage.setItem('is_vertex_key', isVertexKey.toString());
+      if (isVertexKey) {
+        localStorage.setItem('vertex_priority', vertexPriority);
+      } else {
+        localStorage.removeItem('vertex_priority');
+      }
       localStorage.removeItem('vertex_project_id');
       setHasKey(true);
       setShowKeyInput(false);
@@ -139,6 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
     } else {
       localStorage.removeItem('gemini_api_key');
       localStorage.removeItem('is_vertex_key');
+      localStorage.removeItem('vertex_priority');
       localStorage.removeItem('vertex_project_id');
       
       const hasEnv = !!getEnvApiKey();
@@ -384,17 +421,49 @@ export const Header: React.FC<HeaderProps> = ({
                   <input 
                     type="checkbox" 
                     checked={isVertexKey}
-                    onChange={(e) => setIsVertexKey(e.target.checked)}
+                    onChange={(e) => handleVertexToggle(e.target.checked)}
                     className="rounded border-slate-700 bg-slate-950 text-purple-600 focus:ring-purple-500/50 cursor-pointer"
                   />
                   <span>This is a Vertex AI API Key</span>
                 </label>
+
+                {isVertexKey && (
+                  <div className="mt-2.5 pt-2.5 border-t border-slate-800/80 animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-semibold text-slate-400">Vertex AI Priority</label>
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                        {vertexPriority}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1 p-1 bg-slate-950 rounded-lg border border-slate-800">
+                      {(['priority', 'standard', 'flex'] as const).map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => handlePriorityChange(opt)}
+                          className={`py-1 text-xs font-semibold rounded capitalize transition-all ${
+                            vertexPriority === opt
+                              ? 'bg-purple-600 text-white shadow-sm'
+                              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1 leading-tight">
+                      {vertexPriority === 'priority' && 'Priority PayGo: Higher tier with lower latency & prioritized compute.'}
+                      {vertexPriority === 'standard' && 'Standard PayGo: Default standard inference capacity.'}
+                      {vertexPriority === 'flex' && 'Flex PayGo: Lower economy tier with ~50% discount for latency-tolerant requests.'}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Gemini Model Selector */}
               <GeminiModelSelector 
                 geminiModel={geminiModel} 
-                onGeminiModelChange={onGeminiModelChange} 
+                onGeminiModelChange={handleModelChange} 
               />
 
               <p className="text-[10px] text-slate-500 mt-3 leading-relaxed">

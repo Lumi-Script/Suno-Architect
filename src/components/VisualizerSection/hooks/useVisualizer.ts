@@ -49,6 +49,15 @@ export const useVisualizer = (
     const [fontFamily, setFontFamily] = useState('Inter, sans-serif');
     const [smoothingFactor, setSmoothingFactor] = useState(0.1); 
     const [verticalOffset, setVerticalOffset] = useState(0); 
+
+    // Cover Placement State (0 to 1, default 0.5 center)
+    const [coverX, setCoverX] = useState<number>(0.5);
+    const [coverY, setCoverY] = useState<number>(0.5);
+
+    const resetCoverPosition = useCallback(() => {
+        setCoverX(0.5);
+        setCoverY(0.5);
+    }, []); 
     
     // Color Events State
     const [colorEvents, setColorEvents] = useState<any[]>([]);
@@ -397,12 +406,12 @@ export const useVisualizer = (
             let drawn = false;
             if (customBg) {
                 if (customBg.type === 'video' && customVideoRef.current) {
-                    drawCover(ctx, customVideoRef.current, width, height);
+                    drawCover(ctx, customVideoRef.current, width, height, coverX, coverY);
                     drawn = true;
                 } else if (customBg.type === 'image') {
                     const customImg = document.getElementById('custom-bg-img') as HTMLImageElement;
                     if (customImg && customImg.complete) {
-                        drawCover(ctx, customImg, width, height);
+                        drawCover(ctx, customImg, width, height, coverX, coverY);
                         drawn = true;
                     }
                 }
@@ -410,7 +419,7 @@ export const useVisualizer = (
             if (!drawn) {
                 const bgImg = document.getElementById('source-img') as HTMLImageElement;
                 if (bgImg && bgImg.complete) {
-                    drawCover(ctx, bgImg, width, height);
+                    drawCover(ctx, bgImg, width, height, coverX, coverY);
                 }
             }
             // Overlay Dimmer
@@ -476,7 +485,7 @@ export const useVisualizer = (
             setProgress(audioRef.current.currentTime);
             requestRef.current = requestAnimationFrame(animate);
         }
-    }, [isRendering, customBg, aspectRatio, clipData, duration, activeColor, inactiveColor, inactiveOpacity, fontFamily, smoothingFactor, verticalOffset, qt6Style, qt6BarCount, qt6Sensitivity, visualMode, lines, colorEvents]);
+    }, [isRendering, customBg, aspectRatio, clipData, duration, activeColor, inactiveColor, inactiveOpacity, fontFamily, smoothingFactor, verticalOffset, qt6Style, qt6BarCount, qt6Sensitivity, visualMode, lines, colorEvents, coverX, coverY]);
 
     useEffect(() => {
         if (selectedClipId && !isRendering) {
@@ -596,6 +605,7 @@ export const useVisualizer = (
             selectedClipId, manualId, aspectRatio, visualMode, customBg, customAudio,
             audioBitrate, videoBitrate, videoBitrateMode, imgSrc, activeColor, inactiveColor, inactiveOpacity, fontFamily,
             smoothingFactor, verticalOffset, qt6Style, qt6BarCount, qt6Sensitivity,
+            coverX, coverY,
             clipData, alignment, lines, lyricSource, applyStatus, useSyllables,
             isRendering, renderProgress, renderSpeed, isPreparing, isGrouping, progress, duration, isPlaying,
             colorEvents
@@ -606,6 +616,7 @@ export const useVisualizer = (
             setSelectedClipId, setManualId, setAspectRatio, setVisualMode, setCustomBg, setCustomAudio,
             setAudioBitrate, setVideoBitrate, setVideoBitrateMode, setImgSrc, setActiveColor, setInactiveColor, setInactiveOpacity, setFontFamily,
             setSmoothingFactor, setVerticalOffset, setQt6Style, setQt6BarCount, setQt6Sensitivity,
+            setCoverX, setCoverY,
             setLyricSource, setIsPlaying, setUseSyllables,
             addColorEvent, removeColorEvent, updateColorEvent
         },
@@ -615,7 +626,7 @@ export const useVisualizer = (
         handlers: {
             handleManualLoad, handleFileUpload, handleAudioUpload, handleApplyLyrics,
             handleSmartGroup, handleSeek, togglePlay, startOfflineRender, handleImageError, setDuration,
-            handleAiSuggest
+            handleAiSuggest, resetCoverPosition
         }
     };
 };

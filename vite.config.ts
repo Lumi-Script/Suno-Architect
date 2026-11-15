@@ -18,6 +18,11 @@ export default defineConfig(({ mode }) => {
                       'Origin': 'https://suno.com',
                       'Referer': 'https://suno.com/'
                   }
+              },
+              '/vertex-api': {
+                  target: 'https://aiplatform.googleapis.com',
+                  changeOrigin: true,
+                  rewrite: (path) => path.replace(/^\/vertex-api/, '')
               }
           }
       }

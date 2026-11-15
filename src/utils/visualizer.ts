@@ -19,15 +19,30 @@ export const formatTime = (seconds: number) => {
     return `${m}:${s.toString().padStart(2, '0')}`;
 };
 
-export const drawCover = (ctx: CanvasRenderingContext2D, img: CanvasImageSource | HTMLVideoElement | HTMLImageElement, w: number, h: number) => {
+export const drawCover = (
+    ctx: CanvasRenderingContext2D, 
+    img: CanvasImageSource | HTMLVideoElement | HTMLImageElement, 
+    w: number, 
+    h: number,
+    coverX: number = 0.5,
+    coverY: number = 0.5
+) => {
     let imgW = 0; let imgH = 0;
     if (img instanceof HTMLVideoElement) { imgW = img.videoWidth; imgH = img.videoHeight; } 
     else if (img instanceof HTMLImageElement) { imgW = img.naturalWidth || img.width; imgH = img.naturalHeight || img.height; }
     if (!imgW || !imgH) return;
     const imgRatio = imgW / imgH; const winRatio = w / h;
-    let drawW, drawH, startX, startY;
-    if (imgRatio > winRatio) { drawH = h; drawW = h * imgRatio; startX = (w - drawW) / 2; startY = 0; } 
-    else { drawW = w; drawH = w / imgRatio; startX = 0; startY = (h - drawH) / 2; }
+    let drawW: number;
+    let drawH: number;
+    if (imgRatio > winRatio) { 
+        drawH = h; 
+        drawW = h * imgRatio; 
+    } else { 
+        drawW = w; 
+        drawH = w / imgRatio; 
+    }
+    const startX = (w - drawW) * coverX; 
+    const startY = (h - drawH) * coverY;
     ctx.drawImage(img, startX, startY, drawW, drawH);
 };
 

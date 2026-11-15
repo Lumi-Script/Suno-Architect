@@ -18,6 +18,11 @@ interface MediaCardProps {
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onAudioUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleImageError: () => void;
+  coverX?: number;
+  setCoverX?: (val: number) => void;
+  coverY?: number;
+  setCoverY?: (val: number) => void;
+  onResetCoverPosition?: () => void;
 }
 
 const MediaCard: React.FC<MediaCardProps> = ({
@@ -28,7 +33,10 @@ const MediaCard: React.FC<MediaCardProps> = ({
   aspectRatio, setAspectRatio,
   videoRef,
   onFileUpload, onAudioUpload,
-  handleImageError
+  handleImageError,
+  coverX = 0.5, setCoverX,
+  coverY = 0.5, setCoverY,
+  onResetCoverPosition
 }) => {
   return (
     <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-lg p-4 space-y-4">
@@ -42,7 +50,8 @@ const MediaCard: React.FC<MediaCardProps> = ({
                     alt="Cover" 
                     crossOrigin="anonymous" 
                     onError={handleImageError}
-                    className={`w-full h-32 object-cover ${customBg ? 'opacity-50' : 'opacity-100'}`}
+                    style={{ objectPosition: `${coverX * 100}% ${coverY * 100}%` }}
+                    className={`w-full h-32 object-cover transition-[object-position] duration-75 ${customBg ? 'opacity-50' : 'opacity-100'}`}
                 />
                 {customBg && (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -53,7 +62,12 @@ const MediaCard: React.FC<MediaCardProps> = ({
                                 </svg>
                             </div>
                         ) : (
-                            <img src={customBg.url} className="w-full h-full object-cover" alt="custom" />
+                            <img 
+                                src={customBg.url} 
+                                style={{ objectPosition: `${coverX * 100}% ${coverY * 100}%` }}
+                                className="w-full h-full object-cover transition-[object-position] duration-75" 
+                                alt="custom" 
+                            />
                         )}
                         <button 
                             onClick={() => setCustomBg(null)}
@@ -153,6 +167,119 @@ const MediaCard: React.FC<MediaCardProps> = ({
                               <span className="text-xs">Upload Image / Loop</span>
                           </div>
                       </label>
+                  </div>
+              )}
+
+              {/* Cover Placement Controls */}
+              {visualMode === 'cover' && (
+                  <div className="bg-slate-900/90 rounded-lg p-2.5 border border-slate-700 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10 2a.75.75 0 01.75.75v3.69l1.72-1.72a.75.75 0 111.06 1.06l-3 3a.75.75 0 01-1.06 0l-3-3a.75.75 0 111.06-1.06l1.72 1.72V2.75A.75.75 0 0110 2zm0 16a.75.75 0 01-.75-.75v-3.69l-1.72 1.72a.75.75 0 01-1.06-1.06l3-3a.75.75 0 011.06 0l3 3a.75.75 0 01-1.06 1.06l-1.72-1.72v3.69A.75.75 0 0110 18z" clipRule="evenodd" />
+                              </svg>
+                              Cover Placement
+                          </span>
+                          {(coverX !== 0.5 || coverY !== 0.5) && onResetCoverPosition && (
+                              <button
+                                  type="button"
+                                  onClick={onResetCoverPosition}
+                                  className="text-[10px] text-purple-400 hover:text-purple-300 transition-colors font-medium"
+                                  title="Reset Cover to Center"
+                              >
+                                  Reset
+                              </button>
+                          )}
+                      </div>
+
+                      {/* Vertical Placement */}
+                      <div className="space-y-1">
+                          <div className="flex justify-between items-center text-[10px]">
+                              <span className="text-slate-400">Vertical (e.g. 16:9)</span>
+                              <span className="text-slate-300 font-mono text-[9px] bg-slate-800 px-1 py-0.5 rounded">
+                                  {coverY === 0 ? 'Top (0%)' : coverY === 0.5 ? 'Center (50%)' : coverY === 1 ? 'Bottom (100%)' : `${Math.round(coverY * 100)}%`}
+                              </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1">
+                              <button
+                                  type="button"
+                                  onClick={() => setCoverY && setCoverY(0)}
+                                  className={`py-1 text-[10px] font-medium rounded transition-colors ${coverY === 0 ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                              >
+                                  Top
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => setCoverY && setCoverY(0.5)}
+                                  className={`py-1 text-[10px] font-medium rounded transition-colors ${coverY === 0.5 ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                              >
+                                  Center
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => setCoverY && setCoverY(1)}
+                                  className={`py-1 text-[10px] font-medium rounded transition-colors ${coverY === 1 ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                              >
+                                  Bottom
+                              </button>
+                          </div>
+                          <input 
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.01"
+                              value={coverY}
+                              onChange={(e) => setCoverY && setCoverY(parseFloat(e.target.value))}
+                              className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                          />
+                      </div>
+
+                      {/* Horizontal Placement */}
+                      <div className="space-y-1">
+                          <div className="flex justify-between items-center text-[10px]">
+                              <span className="text-slate-400">Horizontal (e.g. 9:16)</span>
+                              <span className="text-slate-300 font-mono text-[9px] bg-slate-800 px-1 py-0.5 rounded">
+                                  {coverX === 0 ? 'Left (0%)' : coverX === 0.5 ? 'Center (50%)' : coverX === 1 ? 'Right (100%)' : `${Math.round(coverX * 100)}%`}
+                              </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1">
+                              <button
+                                  type="button"
+                                  onClick={() => setCoverX && setCoverX(0)}
+                                  className={`py-1 text-[10px] font-medium rounded transition-colors ${coverX === 0 ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                              >
+                                  Left
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => setCoverX && setCoverX(0.5)}
+                                  className={`py-1 text-[10px] font-medium rounded transition-colors ${coverX === 0.5 ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                              >
+                                  Center
+                              </button>
+                              <button
+                                  type="button"
+                                  onClick={() => setCoverX && setCoverX(1)}
+                                  className={`py-1 text-[10px] font-medium rounded transition-colors ${coverX === 1 ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                              >
+                                  Right
+                              </button>
+                          </div>
+                          <input 
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.01"
+                              value={coverX}
+                              onChange={(e) => setCoverX && setCoverX(parseFloat(e.target.value))}
+                              className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                          />
+                      </div>
+
+                      <div className="text-[10px] text-slate-500 italic pt-0.5 flex items-center gap-1">
+                          <span>💡</span>
+                          <span>You can also drag directly on the video canvas to reposition.</span>
+                      </div>
                   </div>
               )}
 

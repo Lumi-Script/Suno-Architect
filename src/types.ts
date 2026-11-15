@@ -142,3 +142,5 @@ export interface FileContext {
 export type ViewMode = 'generator' | 'history' | 'visualizer';
 
 export type Qt6Style = 'wave' | 'bars' | 'circle' | 'circular-wave';
+
+export type VertexPriority = 'priority' | 'standard' | 'flex';
