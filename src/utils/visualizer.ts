@@ -329,7 +329,12 @@ export const drawScrollingLyrics = (
 
     const renderCenterIdx = currentLineRef.current;
     const baseIdx = Math.floor(renderCenterIdx);
-    const PADDING = settings.aspectRatio === "9:16" ? 60 : 40;
+    
+    // Auto-scale lyrics relative to baseline 720p resolution (e.g. 1.5x for 1080p FHD)
+    const isPortrait = height > width || settings.aspectRatio.includes("9:16");
+    const resScale = isPortrait ? (width / 720) : (height / 720);
+    const PADDING = (isPortrait ? 60 : 40) * resScale;
+    const defaultLineHeight = 60 * resScale;
     const centerY = (height / 2) + (height * settings.verticalOffset);
 
     const getLayout = (idx: number, scale: number) => {
@@ -337,8 +342,8 @@ export const drawScrollingLyrics = (
         const line = lines[idx];
         if (line.length === 0) return null;
 
-        let fontSize = 48 * scale;
-        if (settings.aspectRatio === "9:16") fontSize = 36 * scale; 
+        const baseFontSize = isPortrait ? 36 : 48;
+        const fontSize = baseFontSize * resScale * scale;
         
         ctx.font = `bold ${fontSize}px ${settings.fontFamily}`;
         const lineHeight = fontSize * 1.3;
@@ -395,8 +400,8 @@ export const drawScrollingLyrics = (
     const baseLayoutRef = getLayout(baseIdx, 1.0); 
     const nextLayoutRef = getLayout(baseIdx + 1, 1.0);
     
-    const baseH = baseLayoutRef ? baseLayoutRef.totalHeight : 60;
-    const nextH = nextLayoutRef ? nextLayoutRef.totalHeight : 60;
+    const baseH = baseLayoutRef ? baseLayoutRef.totalHeight : defaultLineHeight;
+    const nextH = nextLayoutRef ? nextLayoutRef.totalHeight : defaultLineHeight;
     
     const scrollDist = (baseH / 2) + PADDING + (nextH / 2);
     const pixelOffset = fractional * scrollDist;
@@ -411,19 +416,19 @@ export const drawScrollingLyrics = (
             let hSum = baseH / 2 + PADDING; 
             for (let k = baseIdx + 1; k < item.index; k++) {
                     const l = getLayout(k, 1.0);
-                    hSum += (l ? l.totalHeight : 60) + PADDING;
+                    hSum += (l ? l.totalHeight : defaultLineHeight) + PADDING;
             }
             const l = getLayout(item.index, 1.0);
-            hSum += (l ? l.totalHeight : 60) / 2;
+            hSum += (l ? l.totalHeight : defaultLineHeight) / 2;
             yOffset = hSum;
         } else {
             let hSum = baseH / 2 + PADDING;
             for (let k = baseIdx - 1; k > item.index; k--) {
                 const l = getLayout(k, 1.0);
-                hSum += (l ? l.totalHeight : 60) + PADDING;
+                hSum += (l ? l.totalHeight : defaultLineHeight) + PADDING;
             }
             const l = getLayout(item.index, 1.0);
-            hSum += (l ? l.totalHeight : 60) / 2;
+            hSum += (l ? l.totalHeight : defaultLineHeight) / 2;
             yOffset = -hSum;
         }
 
@@ -458,7 +463,7 @@ export const drawScrollingLyrics = (
                     if (isWordActive) {
                         ctx.fillStyle = wordActiveColor;
                         ctx.shadowColor = wordActiveColor; 
-                        ctx.shadowBlur = 25;
+                        ctx.shadowBlur = 25 * resScale;
                     } else if (isWordPast) {
                         ctx.fillStyle = hexToRgba(wordInactiveColor, 0.9);
                         ctx.shadowBlur = 0;
