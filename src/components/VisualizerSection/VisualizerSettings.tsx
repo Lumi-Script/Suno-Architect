@@ -24,9 +24,11 @@ interface VisualizerSettingsProps {
     setQt6Sensitivity: (val: number) => void;
     videoBitrate: number;
     setVideoBitrate: (val: number) => void;
-        videoBitrateMode: 'constant' | 'variable';
+    videoBitrateMode: 'constant' | 'variable';
     setVideoBitrateMode: (val: 'constant' | 'variable') => void;
-            exportFormat?: 'mp4' | 'webm';
+    fps?: number;
+    setFps?: (val: number) => void;
+    exportFormat?: 'mp4' | 'webm';
     setExportFormat?: (val: 'mp4' | 'webm') => void;
     colorSpaceFix?: boolean;
     setColorSpaceFix?: (val: boolean) => void;
@@ -43,7 +45,7 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
     fontFamily, setFontFamily, activeColor, setActiveColor, inactiveColor, setInactiveColor,
     smoothingFactor, setSmoothingFactor, verticalOffset, setVerticalOffset, inactiveOpacity, setInactiveOpacity,
     visualMode, qt6Style, setQt6Style, qt6BarCount, setQt6BarCount, qt6Sensitivity, setQt6Sensitivity, 
-    videoBitrate, setVideoBitrate, videoBitrateMode, setVideoBitrateMode, exportFormat, setExportFormat, colorSpaceFix, setColorSpaceFix,
+    videoBitrate, setVideoBitrate, videoBitrateMode, setVideoBitrateMode, fps, setFps, exportFormat, setExportFormat, colorSpaceFix, setColorSpaceFix,
     coverX = 0.5, setCoverX, coverY = 0.5, setCoverY,
     onReset, onAiSuggest
 }) => {
@@ -173,6 +175,17 @@ const VisualizerSettings: React.FC<VisualizerSettingsProps> = ({
             )}
             
             {/* Export Settings */}
+            <div className="col-span-2 md:col-span-1">
+                <label className="text-[10px] text-slate-500 block mb-1">Frame Rate</label>
+                <select 
+                    value={fps || 30}
+                    onChange={(e) => setFps && setFps(Number(e.target.value))}
+                    className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200"
+                >
+                    <option value="30">30 FPS</option>
+                    <option value="60">60 FPS</option>
+                </select>
+            </div>
             <div className="col-span-2 md:col-span-1">
                 <label className="text-[10px] text-slate-500 block mb-1">Video Bitrate (bps)</label>
                 <input 

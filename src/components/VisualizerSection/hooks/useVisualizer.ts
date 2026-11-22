@@ -25,6 +25,7 @@ export const useVisualizer = (
     const [customBg, setCustomBg] = useState<{ url: string, type: 'image' | 'video', name: string } | null>(null);
     const [customAudio, setCustomAudio] = useState<{ url: string, name: string } | null>(null);
     const [audioBitrate, setAudioBitrate] = useState(0);
+    const [fps, setFps] = useState<number>(30);
     const [videoBitrate, setVideoBitrate] = useState(5000000);
         const [videoBitrateMode, setVideoBitrateMode] = useState<'constant' | 'variable'>('variable');
             const [exportFormat, setExportFormat] = useState<'mp4' | 'webm'>('mp4');
@@ -32,15 +33,27 @@ export const useVisualizer = (
     
     const [imgSrc, setImgSrc] = useState<string>('');
 
-    // Update video bitrate based on resolution
-    useEffect(() => {
+    const handleSetFps = useCallback((newFps: number) => {
+        setFps(newFps);
         const dims = ASPECT_RATIOS[aspectRatio];
-        if (dims.width >= 1920 || dims.height >= 1920) {
-            setVideoBitrate(8000000);
+        const isFHD = dims.width >= 1920 || dims.height >= 1920;
+        if (newFps === 60) {
+            setVideoBitrate(isFHD ? 16000000 : 10000000);
         } else {
-            setVideoBitrate(5000000);
+            setVideoBitrate(isFHD ? 8000000 : 5000000);
         }
     }, [aspectRatio]);
+
+    // Update video bitrate based on resolution and fps
+    useEffect(() => {
+        const dims = ASPECT_RATIOS[aspectRatio];
+        const isFHD = dims.width >= 1920 || dims.height >= 1920;
+        if (fps === 60) {
+            setVideoBitrate(isFHD ? 16000000 : 10000000);
+        } else {
+            setVideoBitrate(isFHD ? 8000000 : 5000000);
+        }
+    }, [aspectRatio, fps]);
 
     // Style Customization State
     const [activeColor, setActiveColor] = useState('#e879f9');
@@ -593,6 +606,7 @@ export const useVisualizer = (
                     bitrate: audioBitrate,
                     videoBitrate,
                     videoBitrateMode,
+                    fps,
                     title: clipData.title || "video",
                     visualMode,
                     qt6Style,
@@ -672,6 +686,7 @@ export const useVisualizer = (
                         state: {
             exportFormat,
             colorSpaceFix,
+            fps,
             selectedClipId, manualId, aspectRatio, visualMode, customBg, customAudio,
             audioBitrate, videoBitrate, videoBitrateMode, imgSrc, activeColor, inactiveColor, inactiveOpacity, fontFamily,
             smoothingFactor, verticalOffset, qt6Style, qt6BarCount, qt6Sensitivity,
@@ -683,6 +698,7 @@ export const useVisualizer = (
                                 setters: {
             setExportFormat,
             setColorSpaceFix,
+            setFps: handleSetFps,
             setSelectedClipId, setManualId, setAspectRatio, setVisualMode, setCustomBg, setCustomAudio,
             setAudioBitrate, setVideoBitrate, setVideoBitrateMode, setImgSrc, setActiveColor, setInactiveColor, setInactiveOpacity, setFontFamily,
             setSmoothingFactor, setVerticalOffset, setQt6Style, setQt6BarCount, setQt6Sensitivity,
