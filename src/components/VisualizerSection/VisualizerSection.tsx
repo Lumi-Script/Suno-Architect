@@ -75,6 +75,8 @@ const VisualizerSection: React.FC<VisualizerSectionProps> = ({
                         hasAlignment={!!state.alignment}
                         useSyllables={state.useSyllables}
                         setUseSyllables={setters.setUseSyllables}
+                        onRefreshAlignment={handlers.handleRefreshAlignment}
+                        refreshStatus={state.refreshStatus}
                      />
 
                      <MediaCard 

@@ -88,6 +88,7 @@ export const useVisualizer = (
     const [lines, setLines] = useState<AlignedWord[][]>([]);
     const [lyricSource, setLyricSource] = useState(''); 
     const [applyStatus, setApplyStatus] = useState<'idle' | 'applied'>('idle');
+    const [refreshStatus, setRefreshStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [useSyllables, setUseSyllables] = useState(false);
     
     // Audio/Canvas/Media References
@@ -323,6 +324,75 @@ export const useVisualizer = (
         setApplyStatus('applied');
         setTimeout(() => setApplyStatus('idle'), 2000);
     }, [alignment, lyricSource]);
+
+    const handleRefreshAlignment = useCallback(async () => {
+        if (!selectedClipId) return;
+        if (!sunoCookie) {
+            alert("Suno Cookie required to fetch alignment from Suno.");
+            return;
+        }
+        setRefreshStatus('loading');
+        try {
+            const res = await getLyricAlignment(selectedClipId, sunoCookie);
+            if (res) {
+                let newAlign = res.aligned_words || res.alignment || null;
+                let newAlignLyrics = res.aligned_lyrics || [];
+
+                if (!newAlign && (!newAlignLyrics || newAlignLyrics.length === 0)) {
+                    setRefreshStatus('error');
+                    setTimeout(() => setRefreshStatus('idle'), 3000);
+                    alert("No lyric alignment returned for this track.");
+                    return;
+                }
+
+                setAlignment(newAlign);
+
+                const currentClip = history.find(c => c.id === selectedClipId) || clipData;
+                const sourceText = lyricSource || currentClip?.metadata?.prompt || currentClip?.originalData?.lyricsAlone || "";
+                let newLines: AlignedWord[][] = [];
+                if (newAlign) {
+                    if (sourceText) {
+                        newLines = matchWordsToPrompt(newAlign, sourceText);
+                    } else {
+                        newLines = groupWordsByTiming(newAlign);
+                    }
+                }
+
+                if (useSyllables && newAlignLyrics && newAlignLyrics.length > 0) {
+                    if (newLines.length > 0) {
+                        setLines(alignSyllablesToPrompt(newAlignLyrics, newLines));
+                    } else {
+                        setLines(newAlignLyrics.map((line: any) => line.words.map((w: any) => ({
+                            word: w.text || w.word || "",
+                            start_s: w.start_s,
+                            end_s: w.end_s,
+                            success: true
+                        }))));
+                    }
+                } else if (newAlign) {
+                    setLines(newLines);
+                }
+
+                if (currentClip && history.some(h => h.id === selectedClipId)) {
+                    onUpdateClip(selectedClipId, {
+                        alignmentData: newAlign,
+                        alignedLyrics: sanitizeAlignedLyrics(newAlignLyrics || [], newAlign || [], sourceText || "")
+                    });
+                }
+
+                setRefreshStatus('success');
+                setTimeout(() => setRefreshStatus('idle'), 2500);
+            } else {
+                setRefreshStatus('error');
+                setTimeout(() => setRefreshStatus('idle'), 3000);
+            }
+        } catch (e: any) {
+            console.error("Failed to refresh alignment:", e);
+            setRefreshStatus('error');
+            setTimeout(() => setRefreshStatus('idle'), 3000);
+            alert(e?.message || "Failed to refresh alignment from Suno.");
+        }
+    }, [selectedClipId, sunoCookie, lyricSource, clipData, useSyllables, history, onUpdateClip]);
 
         const handleSmartGroup = async () => {
         if (!clipData || !alignment) return;
@@ -606,7 +676,7 @@ export const useVisualizer = (
             audioBitrate, videoBitrate, videoBitrateMode, imgSrc, activeColor, inactiveColor, inactiveOpacity, fontFamily,
             smoothingFactor, verticalOffset, qt6Style, qt6BarCount, qt6Sensitivity,
             coverX, coverY,
-            clipData, alignment, lines, lyricSource, applyStatus, useSyllables,
+            clipData, alignment, lines, lyricSource, applyStatus, refreshStatus, useSyllables,
             isRendering, renderProgress, renderSpeed, isPreparing, isGrouping, progress, duration, isPlaying,
             colorEvents
         },
@@ -624,7 +694,7 @@ export const useVisualizer = (
             canvasRef, audioRef, customVideoRef
         },
         handlers: {
-            handleManualLoad, handleFileUpload, handleAudioUpload, handleApplyLyrics,
+            handleManualLoad, handleFileUpload, handleAudioUpload, handleApplyLyrics, handleRefreshAlignment,
             handleSmartGroup, handleSeek, togglePlay, startOfflineRender, handleImageError, setDuration,
             handleAiSuggest, resetCoverPosition
         }

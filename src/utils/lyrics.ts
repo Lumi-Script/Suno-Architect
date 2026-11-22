@@ -95,6 +95,9 @@ export const getCleanAlignedWords = (aligned: AlignedWord[]): AlignedWord[] => {
     // Quick merge for punctuation
     const merged: AlignedWord[] = [];
     const isCloser = (s: string) => /^[\)\"\'\u201D\u2019\u00BB\>\,\.\!\?\:\;]+$/.test(s.trim());
+    const isOpener = (s: string) => /^[\(\[\{\u201C\u2018\u00AB\<]+$/.test(s.trim());
+
+    // Pass 1: Merge closers to previous word
     for (let i = 0; i < stripped.length; i++) {
         const current = { ...stripped[i] };
         if (merged.length > 0) {
@@ -111,7 +114,56 @@ export const getCleanAlignedWords = (aligned: AlignedWord[]): AlignedWord[] => {
         merged.push(current);
     }
 
-    return merged;
+    // Pass 2: Merge openers forward to the next word
+    // Also detach trailing opening brackets like "line (" -> "line" and "(nextWord"
+    const afterOpeners: AlignedWord[] = [];
+    let pendingOpener = "";
+    let pendingOpenerStart = -1;
+
+    for (let i = 0; i < merged.length; i++) {
+        const item = { ...merged[i] };
+
+        // If this entire item is an opener (e.g. "(")
+        if (isOpener(item.word)) {
+            pendingOpener += item.word.trim();
+            if (pendingOpenerStart === -1) pendingOpenerStart = item.start_s;
+            continue;
+        }
+
+        // If the item ends with an opener (e.g. "line (")
+        const trailingOpenerMatch = item.word.match(/\s*[\(\[\{\u201C\u2018\u00AB\<]+$/);
+        let extractedOpener = "";
+        if (trailingOpenerMatch && trailingOpenerMatch.index !== undefined) {
+            extractedOpener = trailingOpenerMatch[0].trim();
+            item.word = item.word.slice(0, trailingOpenerMatch.index);
+        }
+
+        // Prepend any pending opener from prior tokens
+        if (pendingOpener) {
+            item.word = pendingOpener + item.word.trimStart();
+            if (pendingOpenerStart !== -1) {
+                item.start_s = Math.min(item.start_s, pendingOpenerStart);
+            }
+            pendingOpener = "";
+            pendingOpenerStart = -1;
+        }
+
+        if (item.word.trim().length > 0) {
+            afterOpeners.push(item);
+        }
+
+        // Set pending opener for subsequent word if trailing opener was extracted
+        if (extractedOpener) {
+            pendingOpener = extractedOpener;
+            pendingOpenerStart = item.end_s;
+        }
+    }
+
+    if (pendingOpener && afterOpeners.length > 0) {
+        afterOpeners[afterOpeners.length - 1].word += pendingOpener;
+    }
+
+    return afterOpeners;
 };
 
 export const groupWordsByTiming = (aligned: AlignedWord[]): AlignedWord[][] => {
@@ -184,7 +236,7 @@ export const matchWordsToPrompt = (aligned: AlignedWord[], promptText: string): 
             let matchCost = 3; 
             if (aClean === pClean) {
                 matchCost = 0; 
-            } else if (aClean.includes(pClean) || pClean.includes(aClean)) {
+            } else if (aClean && pClean && (aClean.includes(pClean) || pClean.includes(aClean))) {
                 matchCost = 1; 
             }
             
@@ -255,8 +307,45 @@ export const matchWordsToPrompt = (aligned: AlignedWord[], promptText: string): 
     if (currentLine.length > 0) {
         lines.push(currentLine);
     }
+
+    const isOpener = (s: string) => /^[\(\[\{\u201C\u2018\u00AB\<]+$/.test(s.trim());
+
+    // Post-process lines: ensure no line ends with an opening bracket when followed by another line
+    for (let l = 0; l < lines.length - 1; l++) {
+        const line = lines[l];
+        const nextLine = lines[l + 1];
+        if (line.length === 0 || !nextLine) continue;
+        const lastWord = line[line.length - 1];
+
+        // Case A: Last word is standalone opener
+        if (isOpener(lastWord.word)) {
+            line.pop();
+            if (nextLine.length > 0) {
+                nextLine[0] = {
+                    ...nextLine[0],
+                    word: lastWord.word.trim() + nextLine[0].word.trimStart(),
+                    start_s: Math.min(lastWord.start_s, nextLine[0].start_s)
+                };
+            } else {
+                nextLine.unshift(lastWord);
+            }
+        } else {
+            // Case B: Last word ends with an opening bracket (e.g. "line (")
+            const trailingOpener = lastWord.word.match(/\s*[\(\[\{\u201C\u2018\u00AB\<]+$/);
+            if (trailingOpener && trailingOpener.index !== undefined) {
+                const openerChar = trailingOpener[0].trim();
+                lastWord.word = lastWord.word.slice(0, trailingOpener.index);
+                if (nextLine.length > 0) {
+                    nextLine[0] = {
+                        ...nextLine[0],
+                        word: openerChar + nextLine[0].word.trimStart()
+                    };
+                }
+            }
+        }
+    }
     
-    return lines;
+    return lines.filter(l => l.length > 0);
 };
 
 export const groupLyricsByLines = async (
