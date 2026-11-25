@@ -20,13 +20,14 @@ import { TermsPage } from './pages/TermsPage';
 import { AboutPage } from './pages/AboutPage';
 
 const App: React.FC = () => {
-  const { currentPath } = useRouter();
+  const { currentPath, navigate } = useRouter();
 
   const [state, setState] = useState<GenerationState>({
     isLoading: false,
     error: null,
     result: null,
   });
+  const [activeDraftIds, setActiveDraftIds] = useState<string[]>([]);
   
   const [history, setHistory] = useState<SunoClip[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
@@ -469,6 +470,30 @@ const App: React.FC = () => {
       newResult[index] = updatedTrack;
       return { ...prev, result: newResult };
     });
+
+    const draftId = activeDraftIds[index];
+    if (draftId) {
+      setHistory(prev => {
+        const targetIndex = prev.findIndex(c => c.id === draftId);
+        if (targetIndex === -1) return prev;
+        const current = prev[targetIndex];
+        const updatedDraft: SunoClip = {
+          ...current,
+          title: updatedTrack.title || current.title,
+          metadata: {
+            ...current.metadata,
+            tags: updatedTrack.style || '',
+            prompt: updatedTrack.lyricsWithTags || '',
+            negative_tags: updatedTrack.excludeStyles || current.metadata?.negative_tags,
+          },
+          originalData: updatedTrack
+        };
+        saveClip(updatedDraft).catch(err => console.error("Failed to update draft in indexedDB:", err));
+        const next = [...prev];
+        next[targetIndex] = updatedDraft;
+        return next;
+      });
+    }
   };
 
   const handleGenerate = async (prompt: string, files: FileContext[] = [], numTracks: number = 1) => {
@@ -500,6 +525,7 @@ const App: React.FC = () => {
       }));
       setHistory(prev => [...draftClips, ...prev]);
       saveClips(draftClips).catch(console.error);
+      setActiveDraftIds(draftClips.map(c => c.id));
 
     } catch (err: any) {
       let errorMsg = err.message || "Something went wrong.";
@@ -532,6 +558,65 @@ const App: React.FC = () => {
       mergeClips(clipsArray);
   }, []);
 
+  const handleReopenInGenerator = useCallback(async (clip: SunoClip) => {
+    const rawTags = clip.originalData?.style || clip.metadata?.tags || '';
+    const rawPrompt = clip.originalData?.lyricsWithTags || clip.metadata?.prompt || '';
+    const rawTitle = clip.title || clip.originalData?.title || 'Untitled Track';
+    const rawNegativeTags = clip.originalData?.excludeStyles || clip.metadata?.negative_tags || '';
+
+    const originalData: ParsedSunoOutput = {
+      style: rawTags,
+      title: rawTitle,
+      excludeStyles: rawNegativeTags,
+      advancedParams: clip.originalData?.advancedParams || '',
+      vocalGender: clip.originalData?.vocalGender || '',
+      weirdness: clip.originalData?.weirdness ?? 50,
+      styleInfluence: clip.originalData?.styleInfluence ?? 50,
+      lyricsWithTags: rawPrompt,
+      lyricsAlone: clip.originalData?.lyricsAlone || stripMetaTags(rawPrompt),
+      fullResponse: clip.originalData?.fullResponse || ''
+    };
+
+    const newDraftId = `draft_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const newDraftClip: SunoClip = {
+      id: newDraftId,
+      title: rawTitle,
+      created_at: new Date().toISOString(),
+      model_name: 'Gemini Draft',
+      workspaceId: 'drafts',
+      imageUrl: clip.imageUrl,
+      imageLargeUrl: clip.imageLargeUrl,
+      explicit: clip.explicit,
+      metadata: {
+        tags: rawTags,
+        prompt: rawPrompt,
+        negative_tags: rawNegativeTags,
+        avg_bpm: clip.metadata?.avg_bpm,
+        max_bpm: clip.metadata?.max_bpm,
+        min_bpm: clip.metadata?.min_bpm,
+        key: clip.metadata?.key,
+        duration: clip.metadata?.duration,
+      },
+      originalData: originalData
+    };
+
+    try {
+      await saveClip(newDraftClip);
+    } catch (err) {
+      console.error('Failed to save reopened draft to indexedDB:', err);
+    }
+
+    setHistory(prev => [newDraftClip, ...prev]);
+    setActiveDraftIds([newDraftClip.id]);
+    setState({
+      isLoading: false,
+      error: null,
+      result: [originalData]
+    });
+
+    navigate('/lyrics');
+  }, [navigate]);
+
   const renderContent = () => {
     switch (currentPath) {
       case '/':
@@ -548,6 +633,7 @@ const App: React.FC = () => {
               history={history} 
               onUpdateClip={handleUpdateClip} 
               onAddClip={handleAddClip}
+              onReopenTrack={handleReopenInGenerator}
               sunoCookie={sunoCookie}
               onFetchHistory={handleFetchHistory}
               isSyncing={isSyncingHistory}

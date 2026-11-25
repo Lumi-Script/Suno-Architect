@@ -10,6 +10,7 @@ interface HistorySectionProps {
   history: SunoClip[];
   onUpdateClip: (id: string, updates: Partial<SunoClip>) => void;
   onAddClip: (clip: SunoClip | SunoClip[]) => void;
+  onReopenTrack?: (clip: SunoClip) => void;
   sunoCookie?: string;
   onFetchHistory: (limit: number | 'all', workspaceId?: string) => void;
   isSyncing: boolean;
@@ -25,6 +26,7 @@ const HistorySection: React.FC<HistorySectionProps> = ({
     history, 
     onUpdateClip, 
     onAddClip, 
+    onReopenTrack,
     sunoCookie, 
     onFetchHistory, 
     isSyncing, 
@@ -329,6 +331,7 @@ const HistorySection: React.FC<HistorySectionProps> = ({
                             onClick={() => setSelectedClipId(clip.id)}
                             isDraft={isDraft(clip)}
                             workspaceName={wsName}
+                            onReopen={onReopenTrack}
                         />
                     );
                 })}
@@ -340,6 +343,7 @@ const HistorySection: React.FC<HistorySectionProps> = ({
                 clip={selectedClip} 
                 onClose={() => setSelectedClipId(null)} 
                 onUpdateClip={onUpdateClip}
+                onReopen={onReopenTrack}
                 sunoCookie={sunoCookie}
                 isDraft={isDraft(selectedClip)}
                 workspaces={workspaces}

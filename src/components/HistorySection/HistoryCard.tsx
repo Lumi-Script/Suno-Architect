@@ -6,9 +6,10 @@ interface HistoryCardProps {
   onClick: () => void;
   isDraft: boolean;
   workspaceName?: string;
+  onReopen?: (clip: SunoClip) => void;
 }
 
-const HistoryCard: React.FC<HistoryCardProps> = ({ clip, onClick, isDraft, workspaceName }) => {
+const HistoryCard: React.FC<HistoryCardProps> = ({ clip, onClick, isDraft, workspaceName, onReopen }) => {
   // Prioritize explicit image URL from API, otherwise construct it
   const imageUrl = clip.imageUrl || `https://cdn2.suno.ai/image_${clip.id}.jpeg?width=100`;
   const largeImageUrl = clip.imageLargeUrl || `https://cdn2.suno.ai/image_large_${clip.id}.jpeg`;
@@ -119,24 +120,44 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ clip, onClick, isDraft, works
             </div>
         </div>
         
-        <div className="flex items-center justify-between mt-1">
-            <span className="text-xs text-slate-500 truncate">
-                Click for details
-            </span>
-            {!isDraft && (
-                <a 
-                    href={songUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-xs text-purple-400 hover:text-purple-300 hover:underline truncate"
+        <div className="flex items-center justify-between mt-1 gap-2">
+            {onReopen ? (
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onReopen(clip);
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-purple-300 hover:text-white bg-purple-900/40 hover:bg-purple-600/70 border border-purple-500/30 hover:border-purple-400 rounded transition-all shadow-sm shrink-0 cursor-pointer"
+                    title="Reopen in Lyrics Generator as a new draft"
                 >
-                    View on Suno.com
-                </a>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 text-purple-400">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    <span>Reopen</span>
+                </button>
+            ) : (
+                <span className="text-xs text-slate-500 truncate">
+                    Click for details
+                </span>
             )}
-            {isDraft && (
-                <span className="text-xs text-amber-400/80 italic font-medium">Draft Prompt</span>
-            )}
+            <div className="flex items-center gap-2 truncate ml-auto">
+                {!isDraft && (
+                    <a 
+                        href={songUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-xs text-purple-400 hover:text-purple-300 hover:underline truncate"
+                    >
+                        View on Suno.com
+                    </a>
+                )}
+                {isDraft && (
+                    <span className="text-xs text-amber-400/80 italic font-medium truncate">Draft Prompt</span>
+                )}
+            </div>
         </div>
         </div>
     </div>
